@@ -1,0 +1,83 @@
+.matrix-wrapper {
+  height: 100%;
+  overflow: auto;
+  padding: 16px;
+}
+
+.matrix-scroll {
+  overflow: auto;
+  max-height: 100%;
+}
+
+.matrix-table {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+th, td {
+  padding: 4px 6px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.corner-cell {
+  min-width: 56px;
+}
+
+.header-cell {
+  background: var(--mat-sys-surface-variant);
+  min-width: 72px;
+  position: relative;
+}
+
+.row-header {
+  text-align: right;
+}
+
+.label-input {
+  width: 48px;
+  background: transparent;
+  border: none;
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  outline: none;
+  &:focus { border-bottom: 1px solid var(--mat-sys-primary); }
+}
+
+.remove-btn {
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 1;
+  mat-icon { font-size: 14px; }
+}
+
+.cell {
+  min-width: 64px;
+  height: 40px;
+}
+
+.diagonal {
+  background: var(--mat-sys-surface-variant);
+  opacity: 0.5;
+}
+
+.diag-marker {
+  color: var(--mat-sys-outline);
+}
+
+.weight-input {
+  width: 56px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--mat-sys-outline);
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  outline: none;
+  &:focus { border-bottom: 1px solid var(--mat-sys-primary); }
+  -moz-appearance: textfield;
+  &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; }
+}

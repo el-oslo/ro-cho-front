@@ -1,0 +1,23 @@
+.preset-content {
+  min-width: 540px;
+}
+
+.preset-layout {
+  display: flex;
+  gap: 16px;
+  min-height: 300px;
+}
+
+.alg-list, .preset-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.list-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+  padding: 4px 0 6px;
+}

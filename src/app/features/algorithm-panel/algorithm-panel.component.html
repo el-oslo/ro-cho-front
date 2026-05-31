@@ -1,0 +1,89 @@
+<div class="panel-container">
+  <div class="panel-section">
+    <div class="section-header">Pathfinding</div>
+
+    <mat-nav-list dense>
+      @for (alg of runner.algorithms; track alg.id) {
+        <mat-list-item
+          [activated]="runner.selectedAlgorithm()?.id === alg.id"
+          (click)="selectAlgorithm(alg.id)"
+          class="alg-item">
+          <span matListItemTitle>{{ alg.name }}</span>
+        </mat-list-item>
+      }
+    </mat-nav-list>
+  </div>
+
+  @if (runner.selectedAlgorithm(); as alg) {
+    <mat-divider />
+
+    <div class="panel-section">
+      <mat-card appearance="outlined" class="alg-card">
+        <mat-card-header>
+          <mat-card-title>{{ alg.name }}</mat-card-title>
+          <mat-card-subtitle>{{ alg.description }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chip-row">
+            @if (alg.requiresWeights) {
+              <span class="constraint-chip">Weighted</span>
+            }
+            <span class="constraint-chip">{{ getDirectednessLabel(alg) }}</span>
+          </div>
+
+          @if (validationError()) {
+            <div class="validation-error">
+              <mat-icon>error</mat-icon>
+              {{ validationError() }}
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-divider />
+
+    <div class="panel-section">
+      <div class="section-header">Parameters</div>
+      <form [formGroup]="paramForm" class="param-form">
+        @for (input of alg.inputs; track input.key) {
+          @if (input.type === 'vertex-select') {
+            <mat-form-field appearance="outline" class="param-field">
+              <mat-label>{{ input.label }}</mat-label>
+              <mat-select [formControlName]="input.key">
+                @if (!input.required) {
+                  <mat-option [value]="null">— None —</mat-option>
+                }
+                @for (v of graphService.graph().vertices; track v.id) {
+                  <mat-option [value]="v.id">{{ v.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          } @else if (input.type === 'number') {
+            <mat-form-field appearance="outline" class="param-field">
+              <mat-label>{{ input.label }}</mat-label>
+              <input matInput type="number" [formControlName]="input.key">
+            </mat-form-field>
+          } @else if (input.type === 'boolean') {
+            <mat-checkbox [formControlName]="input.key">{{ input.label }}</mat-checkbox>
+          }
+        }
+      </form>
+    </div>
+
+    <mat-divider />
+
+    <div class="panel-section action-buttons">
+      <button mat-raised-button color="accent"
+        [disabled]="!!validationError() || paramForm.invalid"
+        (click)="runAlgorithm()">
+        <mat-icon>play_arrow</mat-icon>
+        Run Algorithm
+      </button>
+      <button mat-stroked-button color="warn" (click)="resetGraph()">
+        <mat-icon>restart_alt</mat-icon>
+        Reset Graph
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,58 @@
+<div class="matrix-wrapper">
+  <div class="matrix-scroll">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th class="corner-cell">
+            <button mat-icon-button matTooltip="Add vertex" (click)="addVertex()">
+              <mat-icon>add</mat-icon>
+            </button>
+          </th>
+          @for (col of vertices(); track col.id) {
+            <th class="header-cell">
+              <input class="label-input" [value]="col.label"
+                (blur)="renameVertex(col.id, $any($event.target).value)"
+                (keydown.enter)="renameVertex(col.id, $any($event.target).value)">
+              <button mat-icon-button class="remove-btn" (click)="removeVertex(col.id)" matTooltip="Remove vertex">
+                <mat-icon>close</mat-icon>
+              </button>
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of vertices(); track row.id) {
+          <tr>
+            <td class="header-cell row-header">
+              <input class="label-input" [value]="row.label"
+                (blur)="renameVertex(row.id, $any($event.target).value)"
+                (keydown.enter)="renameVertex(row.id, $any($event.target).value)">
+            </td>
+            @for (col of vertices(); track col.id) {
+              <td class="cell" [class.diagonal]="row.id === col.id">
+                @if (row.id !== col.id) {
+                  @if (weighted()) {
+                    <input
+                      class="weight-input"
+                      type="number"
+                      [value]="getCellWeight(row.id, col.id) ?? ''"
+                      placeholder="—"
+                      (change)="onWeightChange(row.id, col.id, $any($event.target).value)"
+                      (blur)="onWeightChange(row.id, col.id, $any($event.target).value)">
+                  } @else {
+                    <mat-checkbox
+                      [checked]="isCellChecked(row.id, col.id)"
+                      (change)="onCheckChange(row.id, col.id, $event.checked)">
+                    </mat-checkbox>
+                  }
+                } @else {
+                  <span class="diag-marker">—</span>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

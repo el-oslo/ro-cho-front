@@ -1,0 +1,58 @@
+<mat-sidenav-container class="app-container" [class.dark-theme]="darkMode()" [class.light-theme]="!darkMode()">
+
+  <!-- Left sidenav: Algorithm panel -->
+  <mat-sidenav
+    [mode]="sidenavMode()"
+    [opened]="leftOpen()"
+    position="start"
+    class="left-sidenav">
+    <app-algorithm-panel (modeChange)="mode.set($event)" />
+  </mat-sidenav>
+
+  <!-- Right sidenav: Output panel -->
+  <mat-sidenav
+    [mode]="sidenavMode()"
+    [opened]="rightOpen()"
+    position="end"
+    class="right-sidenav">
+    <app-output-panel />
+  </mat-sidenav>
+
+  <!-- Main content -->
+  <mat-sidenav-content class="main-content">
+
+    <!-- Top toolbar -->
+    <app-toolbar
+      [mode]="mode()"
+      [darkMode]="darkMode()"
+      [leftSidenavOpen]="leftOpen()"
+      [rightSidenavOpen]="rightOpen()"
+      (modeChange)="mode.set($event)"
+      (darkModeChange)="onDarkModeChange($event)"
+      (loadPreset)="openPresetDialog()"
+      (toggleLeftSidenav)="leftOpen.update(v => !v)"
+      (toggleRightSidenav)="rightOpen.update(v => !v)"
+    />
+
+    <!-- Tab group: Canvas | Matrix -->
+    <mat-tab-group class="center-tabs" animationDuration="0ms">
+      <mat-tab label="Canvas">
+        <div class="tab-content">
+          <app-canvas [mode]="mode()" [darkMode]="darkMode()" />
+        </div>
+      </mat-tab>
+      <mat-tab label="Matrix">
+        <div class="tab-content">
+          <app-matrix-editor />
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+
+    <!-- Playback bar (only after running) -->
+    @if (runner.hasRun()) {
+      <app-playback-bar />
+    }
+
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

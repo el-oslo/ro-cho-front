@@ -1,0 +1,155 @@
+.output-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.output-header {
+  padding: 16px;
+  .alg-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .step-desc {
+    font-size: 0.8rem;
+    opacity: 0.75;
+    min-height: 18px;
+  }
+}
+
+.meta-section {
+  padding: 8px 0;
+  overflow-y: auto;
+  flex-shrink: 0;
+  max-height: 280px;
+}
+
+.meta-table {
+  width: 100%;
+  font-size: 0.8rem;
+  .active-row { background: rgba(255, 167, 38, 0.15); }
+  &.compact th, &.compact td { padding: 3px 8px; }
+}
+
+.pass-info {
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.neg-chip { padding: 4px 16px; }
+
+.astar-card {
+  margin: 8px 16px;
+  padding: 10px 12px;
+  background: var(--mat-sys-surface-variant);
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+
+.astar-sets {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.set-block {
+  flex: 1;
+  min-width: 120px;
+}
+
+.set-label {
+  padding: 6px 12px 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.dem-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+}
+
+.backtrack-count {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.path-chips {
+  padding: 4px 12px;
+  flex-wrap: wrap;
+}
+
+.step-log {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  .log-title {
+    padding: 8px 16px 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+}
+
+.log-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 5px 16px;
+  font-size: 0.78rem;
+  border-left: 3px solid transparent;
+  &.step-active {
+    border-left-color: var(--mat-sys-tertiary);
+    background: rgba(255,255,255,0.05);
+    color: var(--mat-sys-tertiary);
+  }
+}
+
+.log-idx {
+  flex-shrink: 0;
+  opacity: 0.5;
+  min-width: 24px;
+}
+
+.result-panel {
+  flex-shrink: 0;
+}
+
+.result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  .arrow { align-self: center; opacity: 0.5; }
+}
+
+.total-dist, .explored-count {
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  opacity: 0.4;
+  mat-icon { font-size: 48px; width: 48px; height: 48px; }
+  p { font-size: 0.9rem; }
+}

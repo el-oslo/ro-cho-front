@@ -1,0 +1,86 @@
+<div class="canvas-wrapper">
+  <svg #svgEl
+    class="canvas-svg"
+    [style.background]="darkMode() ? '#1a1a2e' : '#f0f0f5'"
+    (mousedown)="onMouseDown($event)"
+    (mousemove)="onMouseMove($event)"
+    (mouseup)="onMouseUp($event)"
+    (click)="onClick($event)"
+    (dblclick)="onDblClick($event)"
+    (contextmenu)="onContextMenu($event)"
+    (wheel)="onWheel($event)"
+  ></svg>
+
+  <!-- Floating canvas controls -->
+  <div class="canvas-controls">
+    <button mat-icon-button (click)="zoomIn()" matTooltip="Zoom in"><mat-icon>zoom_in</mat-icon></button>
+    <button mat-icon-button (click)="zoomOut()" matTooltip="Zoom out"><mat-icon>zoom_out</mat-icon></button>
+    <button mat-icon-button (click)="fitToScreen()" matTooltip="Fit to screen"><mat-icon>fit_screen</mat-icon></button>
+    <button mat-icon-button (click)="toggleGrid()"
+      [matTooltip]="renderService.showGrid() ? 'Hide grid' : 'Show grid'">
+      <mat-icon>grid_on</mat-icon>
+    </button>
+  </div>
+
+  <!-- Rename overlay -->
+  @if (interaction.renameOverlay(); as overlay) {
+    <div class="float-overlay" [style.left.px]="overlay.x" [style.top.px]="overlay.y">
+      <mat-form-field appearance="outline" class="overlay-field">
+        <mat-label>Label</mat-label>
+        <input matInput [(ngModel)]="renameValue"
+          (keydown.enter)="confirmRename()"
+          (keydown.escape)="cancelRename()"
+          autofocus>
+      </mat-form-field>
+      <div class="overlay-actions">
+        <button mat-button (click)="cancelRename()">Cancel</button>
+        <button mat-raised-button color="accent" (click)="confirmRename()">OK</button>
+      </div>
+    </div>
+  }
+
+  <!-- Weight overlay -->
+  @if (interaction.weightOverlay(); as overlay) {
+    <div class="float-overlay" [style.left.px]="overlay.x" [style.top.px]="overlay.y">
+      <mat-form-field appearance="outline" class="overlay-field">
+        <mat-label>Weight</mat-label>
+        <input matInput type="number" [(ngModel)]="weightValue"
+          (keydown.enter)="confirmWeight()"
+          (keydown.escape)="cancelWeight()"
+          autofocus>
+      </mat-form-field>
+      <div class="overlay-actions">
+        <button mat-button (click)="cancelWeight()">Cancel</button>
+        <button mat-raised-button color="accent" (click)="confirmWeight()">OK</button>
+      </div>
+    </div>
+  }
+
+  <!-- Context menu trigger (invisible) -->
+  @if (interaction.contextMenu(); as ctx) {
+    <div class="ctx-anchor" [style.left.px]="ctx.x" [style.top.px]="ctx.y"
+      [matMenuTriggerFor]="ctxMenu"
+      [matMenuTriggerData]="{ ctx: ctx }"></div>
+    <mat-menu #ctxMenu="matMenu">
+      @if (ctx.type === 'vertex') {
+        <button mat-menu-item (click)="interaction.contextMenuAction('rename', ctx.id, 'vertex')">
+          <mat-icon>edit</mat-icon> Rename
+        </button>
+        <button mat-menu-item (click)="interaction.contextMenuAction('delete', ctx.id, 'vertex')">
+          <mat-icon>delete</mat-icon> Delete
+        </button>
+      } @else {
+        <button mat-menu-item (click)="interaction.contextMenuAction('delete', ctx.id, 'edge')">
+          <mat-icon>delete</mat-icon> Delete edge
+        </button>
+      }
+    </mat-menu>
+  }
+
+  <!-- Color legend (visualise mode only) -->
+  @if (mode() === 'visualise') {
+    <div class="legend-row">
+      <app-color-legend />
+    </div>
+  }
+</div>

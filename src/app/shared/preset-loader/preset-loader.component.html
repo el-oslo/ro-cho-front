@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>Load Preset Graph</h2>
+<mat-dialog-content class="preset-content">
+  <div class="preset-layout">
+    <!-- Algorithm selector -->
+    <div class="alg-list">
+      <div class="list-label">Algorithm</div>
+      <mat-selection-list [multiple]="false">
+        @for (alg of data.algorithms; track alg.id) {
+          <mat-list-option
+            [value]="alg"
+            [selected]="selectedAlg?.id === alg.id"
+            (click)="selectAlg(alg)">
+            {{ alg.name }}
+          </mat-list-option>
+        }
+      </mat-selection-list>
+    </div>
+
+    <!-- Preset selector -->
+    @if (selectedAlg) {
+      <div class="preset-list">
+        <div class="list-label">Preset</div>
+        <mat-selection-list [multiple]="false">
+          @for (preset of selectedAlg.presets; track preset.name) {
+            <mat-list-option
+              [value]="preset"
+              [selected]="selectedPreset?.name === preset.name"
+              (click)="selectPreset(preset)">
+              <span matListItemTitle>{{ preset.name }}</span>
+              <span matListItemLine>{{ preset.description }}</span>
+            </mat-list-option>
+          }
+        </mat-selection-list>
+      </div>
+    }
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="null">Cancel</button>
+  <button mat-raised-button color="accent" [disabled]="!selectedPreset" (click)="confirm()">
+    <mat-icon>check</mat-icon> Load
+  </button>
+</mat-dialog-actions>

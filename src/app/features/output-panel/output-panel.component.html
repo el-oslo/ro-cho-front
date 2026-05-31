@@ -1,0 +1,191 @@
+<div class="output-container">
+  @if (runner.selectedAlgorithm(); as alg) {
+    <!-- Header -->
+    <div class="output-header">
+      <div class="alg-name">{{ alg.name }}</div>
+      @if (step(); as s) {
+        <div class="step-desc">{{ s.description }}</div>
+      }
+    </div>
+
+    <mat-divider />
+
+    <!-- Metadata by algorithm -->
+    @if (runner.hasRun()) {
+      <div class="meta-section">
+
+        <!-- DIJKSTRA -->
+        @if (algId() === 'dijkstra') {
+          <table mat-table [dataSource]="dijkstraRows()" class="meta-table">
+            <ng-container matColumnDef="label">
+              <th mat-header-cell *matHeaderCellDef>Vertex</th>
+              <td mat-cell *matCellDef="let row" [class.active-row]="row.active">{{ row.label }}</td>
+            </ng-container>
+            <ng-container matColumnDef="distance">
+              <th mat-header-cell *matHeaderCellDef>Distance</th>
+              <td mat-cell *matCellDef="let row" [class.active-row]="row.active">{{ row.distance }}</td>
+            </ng-container>
+            <ng-container matColumnDef="previous">
+              <th mat-header-cell *matHeaderCellDef>Previous</th>
+              <td mat-cell *matCellDef="let row" [class.active-row]="row.active">{{ row.previous }}</td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let row" [class.active-row]="row.active">{{ row.status }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['label','distance','previous','status']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['label','distance','previous','status']"></tr>
+          </table>
+        }
+
+        <!-- BELLMAN-FORD -->
+        @if (algId() === 'bellman-ford') {
+          <div class="pass-info">Pass {{ bfPass() }} / {{ graphService.graph().vertices.length - 1 }}</div>
+          @if (bfNegCycle()) {
+            <mat-chip-set class="neg-chip"><mat-chip color="warn" highlighted>⚠ Negative cycle found</mat-chip></mat-chip-set>
+          } @else if (isLast()) {
+            <mat-chip-set><mat-chip>No negative cycle detected</mat-chip></mat-chip-set>
+          }
+          <table mat-table [dataSource]="bfRows()" class="meta-table">
+            <ng-container matColumnDef="label">
+              <th mat-header-cell *matHeaderCellDef>Vertex</th>
+              <td mat-cell *matCellDef="let row">{{ row.label }}</td>
+            </ng-container>
+            <ng-container matColumnDef="distance">
+              <th mat-header-cell *matHeaderCellDef>Distance</th>
+              <td mat-cell *matCellDef="let row">{{ row.distance }}</td>
+            </ng-container>
+            <ng-container matColumnDef="previous">
+              <th mat-header-cell *matHeaderCellDef>Previous</th>
+              <td mat-cell *matCellDef="let row">{{ row.previous }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['label','distance','previous']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['label','distance','previous']"></tr>
+          </table>
+        }
+
+        <!-- A* -->
+        @if (algId() === 'astar') {
+          @if (astarCurrentNode(); as node) {
+            <div class="astar-card">
+              Evaluating <strong>{{ node.label }}</strong> — f = g + h = {{ node.g }} + {{ node.h }} = {{ node.f }}
+            </div>
+          }
+          <div class="astar-sets">
+            <div class="set-block">
+              <div class="set-label">Open Set</div>
+              <table mat-table [dataSource]="astarOpenSet()" class="meta-table compact">
+                <ng-container matColumnDef="id">
+                  <th mat-header-cell *matHeaderCellDef>Vertex</th>
+                  <td mat-cell *matCellDef="let row">{{ vertexLabel(row.id) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="f">
+                  <th mat-header-cell *matHeaderCellDef>f</th>
+                  <td mat-cell *matCellDef="let row">{{ row.f }}</td>
+                </ng-container>
+                <ng-container matColumnDef="g">
+                  <th mat-header-cell *matHeaderCellDef>g</th>
+                  <td mat-cell *matCellDef="let row">{{ row.g }}</td>
+                </ng-container>
+                <ng-container matColumnDef="h">
+                  <th mat-header-cell *matHeaderCellDef>h</th>
+                  <td mat-cell *matCellDef="let row">{{ row.h }}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="['id','f','g','h']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['id','f','g','h']"></tr>
+              </table>
+            </div>
+            <div class="set-block">
+              <div class="set-label">Closed Set</div>
+              <table mat-table [dataSource]="astarClosedSet()" class="meta-table compact">
+                <ng-container matColumnDef="id">
+                  <th mat-header-cell *matHeaderCellDef>Vertex</th>
+                  <td mat-cell *matCellDef="let row">{{ vertexLabel(row.id) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="finalCost">
+                  <th mat-header-cell *matHeaderCellDef>Final Cost</th>
+                  <td mat-cell *matCellDef="let row">{{ row.finalCost }}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="['id','finalCost']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['id','finalCost']"></tr>
+              </table>
+            </div>
+          </div>
+        }
+
+        <!-- DEMOUCRON -->
+        @if (algId() === 'demoucron') {
+          <div class="dem-status-row">
+            @if (demStatus() === 'found') {
+              <mat-chip color="accent" highlighted>Path found</mat-chip>
+            } @else if (demStatus() === 'no-path') {
+              <mat-chip color="warn" highlighted>No Hamiltonian path exists</mat-chip>
+            } @else {
+              <mat-chip>Searching…</mat-chip>
+            }
+            <span class="backtrack-count">{{ demBacktracks() }} backtracks</span>
+          </div>
+          <mat-chip-set class="path-chips">
+            @for (label of demPath(); track label) {
+              <mat-chip>{{ label }}</mat-chip>
+            }
+          </mat-chip-set>
+        }
+      </div>
+
+      <mat-divider />
+
+      <!-- Step log -->
+      <div class="step-log" #stepList>
+        <div class="log-title">Step Log</div>
+        <div class="log-scroll">
+          @for (s of steps(); track s.stepIndex) {
+            <div class="log-item" [class.step-active]="s.stepIndex === stepIndex()">
+              <span class="log-idx">{{ s.stepIndex + 1 }}</span>
+              <span class="log-desc">{{ s.description }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <mat-divider />
+
+      <!-- Final result -->
+      @if (isLast() && finalPath().length > 0) {
+        <mat-expansion-panel [expanded]="true" class="result-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Result</mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="result-content">
+            <mat-chip-set class="path-chips">
+              @for (label of finalPath(); track $index) {
+                <mat-chip>{{ label }}</mat-chip>
+                @if ($index < finalPath().length - 1) {
+                  <span class="arrow">→</span>
+                }
+              }
+            </mat-chip-set>
+
+            @if (finalDistance() !== null) {
+              <div class="total-dist">Total distance: {{ finalDistance() }}</div>
+            }
+
+            @if (algId() === 'astar') {
+              <div class="explored-count">Explored nodes: {{ exploredCount() }}</div>
+            }
+
+            @if (algId() === 'bellman-ford' && bfNegCycle()) {
+              <mat-chip color="warn" highlighted>⚠ Negative cycle found</mat-chip>
+            }
+          </div>
+        </mat-expansion-panel>
+      }
+    }
+  } @else {
+    <div class="empty-state">
+      <mat-icon>account_tree</mat-icon>
+      <p>Select an algorithm to get started.</p>
+    </div>
+  }
+</div>

@@ -1,0 +1,45 @@
+<mat-toolbar class="playback-bar" color="primary">
+  <!-- First -->
+  <button mat-icon-button [disabled]="isFirst" (click)="runner.goToStep(0)" matTooltip="First step">
+    <mat-icon>skip_previous</mat-icon>
+  </button>
+
+  <!-- Prev -->
+  <button mat-icon-button [disabled]="isFirst" (click)="runner.prevStep()" matTooltip="Previous step">
+    <mat-icon>fast_rewind</mat-icon>
+  </button>
+
+  <!-- Play/Pause -->
+  <button mat-icon-button (click)="togglePlay()" [matTooltip]="runner.isPlaying() ? 'Pause' : 'Play'">
+    <mat-icon>{{ runner.isPlaying() ? 'pause' : 'play_arrow' }}</mat-icon>
+  </button>
+
+  <!-- Next -->
+  <button mat-icon-button [disabled]="isLast" (click)="runner.nextStep()" matTooltip="Next step">
+    <mat-icon>fast_forward</mat-icon>
+  </button>
+
+  <!-- Last -->
+  <button mat-icon-button [disabled]="isLast" (click)="runner.goToStep(totalSteps - 1)" matTooltip="Last step">
+    <mat-icon>skip_next</mat-icon>
+  </button>
+
+  <span class="step-count">Step {{ stepIndex + 1 }} / {{ totalSteps }}</span>
+
+  <mat-slider
+    class="step-slider"
+    [min]="0"
+    [max]="totalSteps - 1"
+    [step]="1"
+    discrete>
+    <input matSliderThumb [value]="stepIndex" (valueChange)="onSliderChange($event)">
+  </mat-slider>
+
+  <span class="speed-label">Speed</span>
+  <mat-form-field appearance="outline" class="speed-field">
+    <input matInput type="number" min="50" max="5000" step="50"
+      [value]="speed"
+      (change)="onSpeedChange($any($event.target).value)">
+    <span matSuffix>ms</span>
+  </mat-form-field>
+</mat-toolbar>

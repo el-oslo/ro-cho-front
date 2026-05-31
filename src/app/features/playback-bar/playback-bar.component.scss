@@ -1,0 +1,31 @@
+.playback-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 0 8px;
+  height: 56px;
+}
+
+.step-count {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  min-width: 90px;
+  text-align: center;
+}
+
+.step-slider {
+  flex: 1;
+  margin: 0 8px;
+}
+
+.speed-label {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.speed-field {
+  width: 100px;
+  .mat-mdc-form-field-subscript-wrapper { display: none; }
+}
