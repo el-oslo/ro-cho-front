@@ -34,7 +34,7 @@ interface ChoMeta {
 }
 
 function displayVal(v: number, mode: 'min' | 'max'): string {
-  if (v === INF)  return '∞';
+  if (v === INF)  return '+∞';
   if (v === NINF) return '-∞';
   return String(v);
 }

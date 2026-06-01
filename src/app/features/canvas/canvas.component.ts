@@ -1,6 +1,7 @@
 import {
-  Component, ElementRef, ViewChild, inject, effect, input, OnDestroy, HostListener
+  Component, ElementRef, ViewChild, inject, effect, input, OnDestroy, HostListener, computed
 } from '@angular/core';
+import { MatMenuTrigger } from '@angular/material/menu';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,6 +30,7 @@ import { ColorLegendComponent } from '../../shared/color-legend/color-legend.com
 })
 export class CanvasComponent implements OnDestroy {
   @ViewChild('svgEl') svgEl!: ElementRef<SVGSVGElement>;
+  @ViewChild('ctxMenuTrigger') ctxMenuTrigger!: MatMenuTrigger;
 
   readonly mode = input<'edit' | 'visualise'>('edit');
   readonly darkMode = input<boolean>(true);
@@ -45,6 +47,8 @@ export class CanvasComponent implements OnDestroy {
   renameValue = '';
   weightValue = '';
 
+  readonly hasSelection = computed(() => this.interaction.selected().size > 0);
+
   constructor() {
     const loop = () => {
       if (this.dirty && this.svgEl?.nativeElement) {
@@ -59,11 +63,11 @@ export class CanvasComponent implements OnDestroy {
       void this.graphService.graph();
       void this.runner.currentStep();
       void this.interaction.selected();
-      void this.interaction.pendingEdgeSource();
       void this.renderService.zoom();
       void this.renderService.panX();
       void this.renderService.panY();
       void this.renderService.showGrid();
+      void this.renderService.dragLineEnd();
       void this.darkMode();
       this.dirty = true;
     });
@@ -94,7 +98,7 @@ export class CanvasComponent implements OnDestroy {
       this.graphService.graph(),
       this.runner.currentStep(),
       this.interaction.selected(),
-      this.interaction.pendingEdgeSource(),
+      null,
     );
   }
 
@@ -106,14 +110,16 @@ export class CanvasComponent implements OnDestroy {
     this.interaction.handleMouseMove(e, this.svgEl.nativeElement);
   }
   onMouseUp(e: MouseEvent) {
-    this.interaction.handleMouseUp(e);
+    this.interaction.handleMouseUp(e, this.svgEl.nativeElement);
   }
   onClick(e: MouseEvent) {
     this.interaction.handleClick(e, this.svgEl.nativeElement, this.mode());
+    if (this.interaction.contextMenu()) {
+      setTimeout(() => this.ctxMenuTrigger?.openMenu(), 0);
+    }
   }
   onDblClick(e: MouseEvent) {
-    const overlay = this.interaction.renameOverlay();
-    if (overlay) return;
+    if (this.interaction.renameOverlay()) return;
     this.interaction.handleDblClick(e, this.svgEl.nativeElement, this.mode());
     const r = this.interaction.renameOverlay();
     if (r) this.renameValue = r.label;
@@ -121,7 +127,7 @@ export class CanvasComponent implements OnDestroy {
     if (w) this.weightValue = w.value;
   }
   onContextMenu(e: MouseEvent) {
-    this.interaction.handleContextMenu(e, this.svgEl.nativeElement, this.mode());
+    this.interaction.handleContextMenu(e);
   }
   onWheel(e: WheelEvent) {
     this.interaction.handleWheel(e, this.svgEl.nativeElement);
@@ -155,4 +161,42 @@ export class CanvasComponent implements OnDestroy {
   zoomOut() { this.renderService.zoomOut(this.svgEl.nativeElement); }
   fitToScreen() { this.renderService.fitToScreen(this.svgEl.nativeElement, this.graphService.graph()); }
   toggleGrid() { this.renderService.showGrid.update(v => !v); }
+
+  addVertexAtCenter() {
+    if (this.mode() !== 'edit') return;
+    const svg = this.svgEl.nativeElement;
+    const rect = svg.getBoundingClientRect();
+    const center = this.renderService.screenToWorld(svg, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    this.graphService.addVertex(center);
+  }
+
+  deleteSelected() {
+    if (this.mode() !== 'edit') return;
+    for (const id of this.interaction.selected()) {
+      if (this.graphService.graph().vertices.some(v => v.id === id)) {
+        this.graphService.removeVertex(id);
+      } else if (this.graphService.graph().edges.some(e => e.id === id)) {
+        this.graphService.removeEdge(id);
+      }
+    }
+    this.interaction.selected.set(new Set());
+  }
+
+  circularLayout() {
+    const verts = this.graphService.graph().vertices;
+    const n = verts.length;
+    if (!n) return;
+    const svg = this.svgEl.nativeElement;
+    const rect = svg.getBoundingClientRect();
+    const cx = this.renderService.screenToWorld(svg, rect.left + rect.width / 2, rect.top + rect.height / 2).x;
+    const cy = this.renderService.screenToWorld(svg, rect.left + rect.width / 2, rect.top + rect.height / 2).y;
+    const r = 80 + n * 18;
+    verts.forEach((v, i) => {
+      const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+      this.graphService.updateVertex(v.id, {
+        x: Math.round(cx + r * Math.cos(angle)),
+        y: Math.round(cy + r * Math.sin(angle)),
+      });
+    });
+  }
 }

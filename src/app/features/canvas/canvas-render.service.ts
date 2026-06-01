@@ -34,6 +34,9 @@ export class CanvasRenderService {
   get bg() { return this.darkMode() ? '#1a1a2e' : '#f0f0f5'; }
   get vertexRadius() { return VERTEX_RADIUS; }
 
+  // Live ghost line while dragging to create an edge
+  readonly dragLineEnd = signal<{ x: number; y: number } | null>(null);
+
   render(
     svg: SVGSVGElement,
     graph: Graph,
@@ -79,6 +82,25 @@ export class CanvasRenderService {
       const isSel = selected.has(vertex.id);
       const isPendingSrc = vertex.id === pendingSource;
       g.appendChild(this.drawVertex(vertex, state, isSel, isPendingSrc, graph.directed));
+    }
+
+    // Ghost edge line while dragging to create a connection
+    const dle = this.dragLineEnd();
+    if (pendingSource && dle) {
+      const src = graph.vertices.find(v => v.id === pendingSource);
+      if (src) {
+        const ghostLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        ghostLine.setAttribute('x1', String(src.x));
+        ghostLine.setAttribute('y1', String(src.y));
+        ghostLine.setAttribute('x2', String(dle.x));
+        ghostLine.setAttribute('y2', String(dle.y));
+        ghostLine.setAttribute('stroke', '#FFD600');
+        ghostLine.setAttribute('stroke-width', '2');
+        ghostLine.setAttribute('stroke-dasharray', '6 3');
+        ghostLine.setAttribute('opacity', '0.8');
+        ghostLine.setAttribute('pointer-events', 'none');
+        g.appendChild(ghostLine);
+      }
     }
   }
 

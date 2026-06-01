@@ -1,8 +1,6 @@
 import {
-  Component, inject, signal, computed, HostListener, OnInit, effect
+  Component, inject, signal, HostListener, OnInit
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -22,8 +20,7 @@ import { AlgorithmRunnerService } from './core/services/algorithm-runner.service
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule,
-    MatSidenavModule, MatTabsModule,
+    MatTabsModule,
     ToolbarComponent, AlgorithmPanelComponent,
     CanvasComponent, MatrixEditorComponent,
     PlaybackBarComponent, OutputPanelComponent,
@@ -39,23 +36,12 @@ export class App implements OnInit {
 
   readonly mode = signal<'edit' | 'visualise'>('edit');
   readonly darkMode = signal<boolean>(true);
-  readonly smallScreen = signal<boolean>(false);
-  readonly leftOpen = signal<boolean>(true);
-  readonly rightOpen = signal<boolean>(true);
-
-  readonly sidenavMode = computed(() => this.smallScreen() ? 'over' as const : 'side' as const);
+  readonly algPanelOpen = signal<boolean>(false);
+  readonly outputPanelOpen = signal<boolean>(false);
 
   ngOnInit() {
     const stored = localStorage.getItem('darkMode');
     if (stored !== null) this.darkMode.set(stored === 'true');
-    this.checkScreenSize();
-  }
-
-  @HostListener('window:resize')
-  checkScreenSize() {
-    this.smallScreen.set(window.innerWidth < 1200);
-    if (this.smallScreen()) { this.leftOpen.set(false); this.rightOpen.set(false); }
-    else { this.leftOpen.set(true); this.rightOpen.set(true); }
   }
 
   @HostListener('window:keydown', ['$event'])

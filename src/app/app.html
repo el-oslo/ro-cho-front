@@ -1,58 +1,52 @@
-<mat-sidenav-container class="app-container" [class.dark-theme]="darkMode()" [class.light-theme]="!darkMode()">
+<div class="app-layout" [class.light-theme]="!darkMode()">
 
-  <!-- Left sidenav: Algorithm panel -->
-  <mat-sidenav
-    [mode]="sidenavMode()"
-    [opened]="leftOpen()"
-    position="start"
-    class="left-sidenav">
-    <app-algorithm-panel (modeChange)="mode.set($event)" />
-  </mat-sidenav>
+  <app-toolbar
+    [mode]="mode()"
+    [darkMode]="darkMode()"
+    [leftSidenavOpen]="algPanelOpen()"
+    [rightSidenavOpen]="outputPanelOpen()"
+    (modeChange)="mode.set($event)"
+    (darkModeChange)="onDarkModeChange($event)"
+    (loadPreset)="openPresetDialog()"
+    (toggleLeftSidenav)="algPanelOpen.update(v => !v)"
+    (toggleRightSidenav)="outputPanelOpen.update(v => !v)"
+  />
 
-  <!-- Right sidenav: Output panel -->
-  <mat-sidenav
-    [mode]="sidenavMode()"
-    [opened]="rightOpen()"
-    position="end"
-    class="right-sidenav">
-    <app-output-panel />
-  </mat-sidenav>
+  <div class="content-row">
 
-  <!-- Main content -->
-  <mat-sidenav-content class="main-content">
+    <!-- Left column: algo strip + canvas/matrix tabs + playback -->
+    <div class="left-col">
 
-    <!-- Top toolbar -->
-    <app-toolbar
-      [mode]="mode()"
-      [darkMode]="darkMode()"
-      [leftSidenavOpen]="leftOpen()"
-      [rightSidenavOpen]="rightOpen()"
-      (modeChange)="mode.set($event)"
-      (darkModeChange)="onDarkModeChange($event)"
-      (loadPreset)="openPresetDialog()"
-      (toggleLeftSidenav)="leftOpen.update(v => !v)"
-      (toggleRightSidenav)="rightOpen.update(v => !v)"
-    />
+      <!-- Algorithm panel — collapsible strip above canvas -->
+      <div class="algo-strip" [class.collapsed]="!algPanelOpen()">
+        <app-algorithm-panel (modeChange)="mode.set($event)" />
+      </div>
 
-    <!-- Tab group: Canvas | Matrix -->
-    <mat-tab-group class="center-tabs" animationDuration="0ms">
-      <mat-tab label="Canvas">
-        <div class="tab-content">
-          <app-canvas [mode]="mode()" [darkMode]="darkMode()" />
-        </div>
-      </mat-tab>
-      <mat-tab label="Matrix">
-        <div class="tab-content">
-          <app-matrix-editor />
-        </div>
-      </mat-tab>
-    </mat-tab-group>
+      <!-- Tab group: Canvas | Matrix -->
+      <mat-tab-group class="center-tabs" animationDuration="0ms">
+        <mat-tab label="Canvas">
+          <div class="tab-content">
+            <app-canvas [mode]="mode()" [darkMode]="darkMode()" />
+          </div>
+        </mat-tab>
+        <mat-tab label="Matrix">
+          <div class="tab-content">
+            <app-matrix-editor />
+          </div>
+        </mat-tab>
+      </mat-tab-group>
 
-    <!-- Playback bar (only after running) -->
-    @if (runner.hasRun()) {
-      <app-playback-bar />
-    }
+      @if (runner.hasRun()) {
+        <app-playback-bar />
+      }
 
-  </mat-sidenav-content>
+    </div>
 
-</mat-sidenav-container>
+    <!-- Output panel — collapsible right panel inline with canvas -->
+    <div class="output-side" [class.collapsed]="!outputPanelOpen()">
+      <app-output-panel />
+    </div>
+
+  </div>
+
+</div>

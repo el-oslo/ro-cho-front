@@ -1,11 +1,11 @@
-<div class="canvas-wrapper">
+<div class="canvas-wrapper" >
   <svg #svgEl
     class="canvas-svg"
     [style.background]="darkMode() ? '#1a1a2e' : '#f0f0f5'"
+    (click)="onClick($event)"
     (mousedown)="onMouseDown($event)"
     (mousemove)="onMouseMove($event)"
     (mouseup)="onMouseUp($event)"
-    (click)="onClick($event)"
     (dblclick)="onDblClick($event)"
     (contextmenu)="onContextMenu($event)"
     (wheel)="onWheel($event)"
@@ -13,6 +13,13 @@
 
   <!-- Floating canvas controls -->
   <div class="canvas-controls">
+    @if (mode() === 'edit') {
+      <button mat-icon-button (click)="addVertexAtCenter()" matTooltip="Add vertex"><mat-icon>add_circle</mat-icon></button>
+      <button mat-icon-button (click)="deleteSelected()" [disabled]="!hasSelection()"
+        matTooltip="Delete selected"><mat-icon>delete</mat-icon></button>
+      <button mat-icon-button (click)="circularLayout()" matTooltip="Circular layout"><mat-icon>radio_button_unchecked</mat-icon></button>
+      <div class="ctrl-divider"></div>
+    }
     <button mat-icon-button (click)="zoomIn()" matTooltip="Zoom in"><mat-icon>zoom_in</mat-icon></button>
     <button mat-icon-button (click)="zoomOut()" matTooltip="Zoom out"><mat-icon>zoom_out</mat-icon></button>
     <button mat-icon-button (click)="fitToScreen()" matTooltip="Fit to screen"><mat-icon>fit_screen</mat-icon></button>
@@ -56,12 +63,16 @@
     </div>
   }
 
-  <!-- Context menu trigger (invisible) -->
-  @if (interaction.contextMenu(); as ctx) {
-    <div class="ctx-anchor" [style.left.px]="ctx.x" [style.top.px]="ctx.y"
-      [matMenuTriggerFor]="ctxMenu"
-      [matMenuTriggerData]="{ ctx: ctx }"></div>
-    <mat-menu #ctxMenu="matMenu">
+  <!-- Context menu trigger — always in DOM, positioned on right-click -->
+  <div class="ctx-anchor"
+    [style.left.px]="interaction.contextMenu()?.x ?? 0"
+    [style.top.px]="interaction.contextMenu()?.y ?? 0"
+    [matMenuTriggerFor]="ctxMenu"
+    #ctxMenuTrigger="matMenuTrigger">
+  </div>
+
+  <mat-menu #ctxMenu="matMenu" (closed)="interaction.contextMenu.set(null)">
+    @if (interaction.contextMenu(); as ctx) {
       @if (ctx.type === 'vertex') {
         <button mat-menu-item (click)="interaction.contextMenuAction('rename', ctx.id, 'vertex')">
           <mat-icon>edit</mat-icon> Rename
@@ -74,8 +85,8 @@
           <mat-icon>delete</mat-icon> Delete edge
         </button>
       }
-    </mat-menu>
-  }
+    }
+  </mat-menu>
 
   <!-- Color legend (visualise mode only) -->
   @if (mode() === 'visualise') {
