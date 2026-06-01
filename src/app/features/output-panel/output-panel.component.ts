@@ -79,13 +79,42 @@ export class OutputPanelComponent {
     return entry ? { label: v?.label ?? cur, f: entry.f, g: entry.g, h: entry.h } : null;
   });
 
-  // Demoucron
+  // Demoucron Hamiltonian
   readonly demPath = computed(() => {
     const ids = (this.step()?.metadata?.['currentPath'] as string[]) ?? [];
     return ids.map(id => this.graphService.graph().vertices.find(v => v.id === id)?.label ?? id);
   });
   readonly demBacktracks = computed(() => (this.step()?.metadata?.['backtracks'] as number) ?? 0);
   readonly demStatus = computed(() => (this.step()?.metadata?.['status'] as string) ?? 'searching');
+
+  // Demoucron CHO
+  readonly choMeta = computed(() => this.step()?.metadata as Record<string, unknown> | null ?? null);
+  readonly choMode = computed(() => (this.choMeta()?.['mode'] as 'min' | 'max') ?? 'min');
+  readonly choPhase = computed(() => (this.choMeta()?.['phase'] as string) ?? 'init');
+  readonly choLabels = computed(() => (this.choMeta()?.['vertexLabels'] as string[]) ?? []);
+  readonly choMatrix = computed(() => (this.choMeta()?.['matrixSnapshot'] as (number | string)[][]) ?? []);
+  readonly choIntermediate = computed(() => this.choMeta()?.['currentIntermediate'] as string | null ?? null);
+  readonly choCurrentI = computed(() => this.choMeta()?.['currentI'] as number | null ?? null);
+  readonly choCurrentJ = computed(() => this.choMeta()?.['currentJ'] as number | null ?? null);
+  readonly choWValue = computed(() => this.choMeta()?.['wValue'] as number | null ?? null);
+  readonly choImproved = computed(() => !!(this.choMeta()?.['improved']));
+  readonly choOptimalPath = computed(() => (this.choMeta()?.['optimalPath'] as string[]) ?? []);
+  readonly choOptimalValue = computed(() => this.choMeta()?.['optimalValue'] as number | null ?? null);
+
+  choColClass(colIdx: number): string {
+    const k = this.choLabels().indexOf(this.choIntermediate() ?? '');
+    return k !== -1 && colIdx === k ? 'cho-col-k' : '';
+  }
+
+  choCellClass(rowIdx: number, colIdx: number): string {
+    const ci = this.choCurrentI(), cj = this.choCurrentJ();
+    const k = this.choLabels().indexOf(this.choIntermediate() ?? '');
+    if (ci !== null && cj !== null && rowIdx === ci && colIdx === cj) {
+      return this.choImproved() ? 'cho-cell-improved' : 'cho-cell-active';
+    }
+    if (k !== -1 && (colIdx === k || rowIdx === k)) return 'cho-cell-k';
+    return '';
+  }
 
   // Final result
   readonly finalPath = computed(() => {

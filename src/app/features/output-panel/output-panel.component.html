@@ -113,7 +113,7 @@
           </div>
         }
 
-        <!-- DEMOUCRON -->
+        <!-- DEMOUCRON HAMILTONIAN -->
         @if (algId() === 'demoucron') {
           <div class="dem-status-row">
             @if (demStatus() === 'found') {
@@ -130,6 +130,64 @@
               <mat-chip>{{ label }}</mat-chip>
             }
           </mat-chip-set>
+        }
+
+        <!-- DEMOUCRON CHO -->
+        @if (algId() === 'demoucron-cho') {
+          <div class="cho-header-row">
+            <mat-chip [color]="choMode() === 'min' ? 'primary' : 'accent'" highlighted>
+              {{ choMode() === 'min' ? 'Minimize (Shortest)' : 'Maximize (Longest)' }}
+            </mat-chip>
+            @if (choIntermediate()) {
+              <span class="cho-pivot">Intermediate: <strong>{{ choIntermediate() }}</strong></span>
+            }
+          </div>
+          @if (choWValue() !== null) {
+            <div class="cho-formula" [class.cho-improved]="choImproved()">
+              W[{{ choLabels()[choCurrentI()!] }}][{{ choLabels()[choCurrentJ()!] }}]
+              = {{ choWValue() }}
+              @if (choImproved()) { <span class="cho-badge">improved</span> }
+            </div>
+          }
+          @if (choMatrix().length > 0) {
+            <div class="cho-matrix-wrap">
+              <table class="cho-matrix">
+                <thead>
+                  <tr>
+                    <th></th>
+                    @for (lbl of choLabels(); track $index; let ci = $index) {
+                      <th [class]="choColClass(ci)">{{ lbl }}</th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of choMatrix(); track $index; let ri = $index) {
+                    <tr>
+                      <th>{{ choLabels()[ri] }}</th>
+                      @for (cell of row; track $index; let ci = $index) {
+                        <td [class]="choCellClass(ri, ci)">{{ cell }}</td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+          @if (choOptimalPath().length > 0) {
+            <div class="cho-result">
+              <mat-chip-set class="path-chips">
+                @for (lbl of choOptimalPath(); track $index) {
+                  <mat-chip>{{ lbl }}</mat-chip>
+                  @if ($index < choOptimalPath().length - 1) {
+                    <span class="arrow">→</span>
+                  }
+                }
+              </mat-chip-set>
+              @if (choOptimalValue() !== null) {
+                <div class="total-dist">Total: {{ choOptimalValue() }}</div>
+              }
+            </div>
+          }
         }
       </div>
 

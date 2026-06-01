@@ -113,9 +113,12 @@ export class GraphService {
     this.graph.set(emptyGraph());
   }
 
-  undo() {
+  get canUndo(): boolean { return this.undoStack.length > 0; }
+
+  undo(): boolean {
     const prev = this.undoStack.pop();
-    if (prev) this.graph.set(prev);
+    if (prev) { this.graph.set(prev); return true; }
+    return false;
   }
 
   exportJSON() {

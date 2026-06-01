@@ -13,37 +13,65 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
   let backtracks = 0;
   let capped = false;
 
-  const adj = new Map<string, Set<string>>();
-  for (const v of vertices) adj.set(v, new Set());
+  const adj = new Map<string, string[]>();
+  for (const v of vertices) adj.set(v, []);
   for (const e of graph.edges) {
-    adj.get(e.source)!.add(e.target);
-    if (!graph.directed) adj.get(e.target)!.add(e.source);
+    adj.get(e.source)!.push(e.target);
+    if (!graph.directed) adj.get(e.target)!.push(e.source);
   }
 
-  // Ore's theorem pruning: check if the remaining graph can still complete the path
-  function canContinue(path: string[], remaining: Set<string>): boolean {
+  // ── Pruning heuristics ───────────────────────────────────────────────────
+
+  // Warnsdorff count: how many unvisited neighbours does nb still have?
+  function warnsdorffDeg(nb: string, remaining: Set<string>): number {
+    return (adj.get(nb) ?? []).filter(x => remaining.has(x)).length;
+  }
+
+  // BFS connectivity: can we reach every node in `remaining` from `last`?
+  function isConnected(last: string, remaining: Set<string>): boolean {
     if (remaining.size === 0) return true;
-    const last = path[path.length - 1];
-    return [...adj.get(last)!].some(nb => remaining.has(nb));
+    const visited = new Set<string>([last]);
+    const queue: string[] = [last];
+    let head = 0;
+    while (head < queue.length) {
+      const cur = queue[head++];
+      for (const nb of (adj.get(cur) ?? [])) {
+        if (remaining.has(nb) && !visited.has(nb)) {
+          visited.add(nb);
+          queue.push(nb);
+        }
+      }
+    }
+    for (const r of remaining) {
+      if (!visited.has(r)) return false;
+    }
+    return true;
   }
 
-  const makeStep = (
+  // ── Step builder ─────────────────────────────────────────────────────────
+
+  function makeStep(
     desc: string,
     currentPath: string[],
     status: 'searching' | 'found' | 'no-path'
-  ): AlgorithmStep => {
+  ): AlgorithmStep {
     const vertexStates: Record<string, VertexState> = {};
-    const edgeStates: Record<string, EdgeState> = {};
+    const edgeStates:   Record<string, EdgeState>   = {};
 
     const pathSet = new Set(currentPath);
     for (const v of graph.vertices) {
       vertexStates[v.id] = pathSet.has(v.id) ? 'path' : 'unvisited';
     }
-    if (currentPath.length > 0) vertexStates[currentPath[currentPath.length - 1]] = 'active';
+    if (currentPath.length > 0) {
+      vertexStates[currentPath[currentPath.length - 1]] = 'active';
+    }
+    if (status === 'no-path') {
+      for (const v of graph.vertices) vertexStates[v.id] = 'rejected';
+    }
 
     for (const e of graph.edges) edgeStates[e.id] = 'default';
     for (let i = 0; i < currentPath.length - 1; i++) {
-      const u = currentPath[i], v = currentPath[i + 1];
+      const [u, v] = [currentPath[i], currentPath[i + 1]];
       const eid = graph.edges.find(
         e => (e.source === u && e.target === v) ||
              (!graph.directed && e.source === v && e.target === u)
@@ -56,9 +84,11 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
       description: desc,
       vertexStates,
       edgeStates,
-      metadata: { currentPath: [...currentPath], backtracks, status },
+      metadata: { currentPath: [...currentPath], backtracks, status, capped },
     };
-  };
+  }
+
+  // ── Backtracking search ──────────────────────────────────────────────────
 
   let found = false;
 
@@ -68,28 +98,51 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
     if (remaining.size === 0) {
       if (targetParam && path[path.length - 1] !== targetParam) return false;
       found = true;
-      steps.push(makeStep(`Hamiltonian path found: ${path.map(id => graph.vertices.find(v => v.id === id)?.label).join(' → ')}`, path, 'found'));
+      steps.push(makeStep(
+        `Hamiltonian path found: ${path.map(id => graph.vertices.find(v => v.id === id)?.label ?? id).join(' → ')}`,
+        path, 'found'
+      ));
       return true;
     }
 
     const last = path[path.length - 1];
-    const neighbors = [...adj.get(last)!].filter(nb => remaining.has(nb));
 
-    for (const nb of neighbors) {
+    // BFS connectivity pruning: if remaining nodes are unreachable from here, prune
+    if (!isConnected(last, remaining)) {
+      backtracks++;
+      const lastLabel = graph.vertices.find(v => v.id === last)?.label ?? last;
+      steps.push(makeStep(
+        `Pruned at ${lastLabel} — remaining graph disconnected (${backtracks} backtracks)`,
+        path, 'searching'
+      ));
+      return false;
+    }
+
+    // Collect neighbours that are still unvisited
+    let neighbours = (adj.get(last) ?? []).filter(nb => remaining.has(nb));
+
+    // Skip target until it is the only node left
+    if (targetParam && remaining.size > 1) {
+      neighbours = neighbours.filter(nb => nb !== targetParam);
+    }
+
+    // Warnsdorff ordering: try neighbours with fewest unvisited connections first
+    neighbours.sort((a, b) => warnsdorffDeg(a, remaining) - warnsdorffDeg(b, remaining));
+
+    for (const nb of neighbours) {
       if (steps.length >= MAX_STEPS) { capped = true; return false; }
+
       path.push(nb);
       remaining.delete(nb);
-      const label = graph.vertices.find(v => v.id === nb)?.label ?? nb;
-      steps.push(makeStep(`Try extending path to ${label}`, path, 'searching'));
+      const nbLabel = graph.vertices.find(v => v.id === nb)?.label ?? nb;
+      steps.push(makeStep(`Extend path to ${nbLabel}`, path, 'searching'));
 
-      if (canContinue(path, remaining)) {
-        if (backtrack(path, remaining)) return true;
-      }
+      if (backtrack(path, remaining)) return true;
 
       path.pop();
       remaining.add(nb);
       backtracks++;
-      steps.push(makeStep(`Backtrack from ${label} (${backtracks} backtracks total)`, path, 'searching'));
+      steps.push(makeStep(`Backtrack from ${nbLabel} (${backtracks} total)`, path, 'searching'));
     }
 
     return false;
@@ -119,12 +172,14 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
 export const demoucronDef: AlgorithmDef = {
   id: 'demoucron',
   name: 'Demoucron Hamiltonian Path',
-  description: 'Backtracking search for a Hamiltonian path (visits every vertex exactly once), with Ore\'s theorem pruning.',
+  description:
+    'Backtracking search for a Hamiltonian path (visits every vertex exactly once). ' +
+    'Uses Warnsdorff\'s rule (try low-degree neighbours first) and BFS connectivity pruning.',
   requiresWeights: false,
   requiresDirected: null,
   inputs: [
     { key: 'source', label: 'Start vertex (optional)', type: 'vertex-select', required: false },
-    { key: 'target', label: 'End vertex (optional)', type: 'vertex-select', required: false },
+    { key: 'target', label: 'End vertex (optional)',   type: 'vertex-select', required: false },
   ],
   presets: [
     {
@@ -133,22 +188,22 @@ export const demoucronDef: AlgorithmDef = {
       graph: {
         directed: false, weighted: false,
         vertices: [
-          { id: 'k1', label: 'A', x: 300, y: 80 },
+          { id: 'k1', label: 'A', x: 300, y: 80  },
           { id: 'k2', label: 'B', x: 500, y: 220 },
           { id: 'k3', label: 'C', x: 420, y: 430 },
           { id: 'k4', label: 'D', x: 180, y: 430 },
           { id: 'k5', label: 'E', x: 100, y: 220 },
         ],
         edges: [
-          { id: 'ke1', source: 'k1', target: 'k2', directed: false },
-          { id: 'ke2', source: 'k1', target: 'k3', directed: false },
-          { id: 'ke3', source: 'k1', target: 'k4', directed: false },
-          { id: 'ke4', source: 'k1', target: 'k5', directed: false },
-          { id: 'ke5', source: 'k2', target: 'k3', directed: false },
-          { id: 'ke6', source: 'k2', target: 'k4', directed: false },
-          { id: 'ke7', source: 'k2', target: 'k5', directed: false },
-          { id: 'ke8', source: 'k3', target: 'k4', directed: false },
-          { id: 'ke9', source: 'k3', target: 'k5', directed: false },
+          { id: 'ke1',  source: 'k1', target: 'k2', directed: false },
+          { id: 'ke2',  source: 'k1', target: 'k3', directed: false },
+          { id: 'ke3',  source: 'k1', target: 'k4', directed: false },
+          { id: 'ke4',  source: 'k1', target: 'k5', directed: false },
+          { id: 'ke5',  source: 'k2', target: 'k3', directed: false },
+          { id: 'ke6',  source: 'k2', target: 'k4', directed: false },
+          { id: 'ke7',  source: 'k2', target: 'k5', directed: false },
+          { id: 'ke8',  source: 'k3', target: 'k4', directed: false },
+          { id: 'ke9',  source: 'k3', target: 'k5', directed: false },
           { id: 'ke10', source: 'k4', target: 'k5', directed: false },
         ],
       },
@@ -181,7 +236,7 @@ export const demoucronDef: AlgorithmDef = {
   ],
   validate(graph) {
     if (graph.vertices.length > 12) {
-      return 'Warning: graph has more than 12 vertices. The search may be very slow.';
+      return 'Warning: more than 12 vertices — search may be slow.';
     }
     return null;
   },

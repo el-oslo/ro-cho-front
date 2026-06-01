@@ -67,7 +67,10 @@ export class App implements OnInit {
     if (e.key === 'ArrowRight') { e.preventDefault(); this.runner.nextStep(); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); this.runner.prevStep(); }
     if (e.ctrlKey && e.key === 'z' && this.mode() === 'edit') {
-      e.preventDefault(); this.graphService.undo();
+      e.preventDefault();
+      if (this.graphService.undo()) {
+        this.snackBar.open('Undo', undefined, { duration: 1200 });
+      }
     }
   }
 

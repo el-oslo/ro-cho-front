@@ -85,4 +85,19 @@ export class MatrixEditorComponent {
     const r = 80 + n * 15;
     this.graphService.addVertex({ x: 300 + r * Math.cos(angle), y: 240 + r * Math.sin(angle) });
   }
+
+  circularLayout() {
+    const verts = this.vertices();
+    const n = verts.length;
+    if (n === 0) return;
+    const cx = 300, cy = 240;
+    const r = 100 + n * 18;
+    verts.forEach((v, i) => {
+      const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+      this.graphService.updateVertex(v.id, {
+        x: Math.round(cx + r * Math.cos(angle)),
+        y: Math.round(cy + r * Math.sin(angle)),
+      });
+    });
+  }
 }

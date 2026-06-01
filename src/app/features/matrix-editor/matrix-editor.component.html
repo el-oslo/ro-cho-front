@@ -7,6 +7,9 @@
             <button mat-icon-button matTooltip="Add vertex" (click)="addVertex()">
               <mat-icon>add</mat-icon>
             </button>
+            <button mat-icon-button matTooltip="Circular layout" (click)="circularLayout()">
+              <mat-icon>radio_button_unchecked</mat-icon>
+            </button>
           </th>
           @for (col of vertices(); track col.id) {
             <th class="header-cell">
