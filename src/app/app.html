@@ -1,23 +1,34 @@
 <div class="app-layout" [class.light-theme]="!darkMode()">
 
   <app-toolbar
-    [mode]="mode()"
     [darkMode]="darkMode()"
-    [leftSidenavOpen]="algPanelOpen()"
-    [rightSidenavOpen]="outputPanelOpen()"
-    (modeChange)="mode.set($event)"
     (darkModeChange)="onDarkModeChange($event)"
-    (loadPreset)="openPresetDialog()"
-    (toggleLeftSidenav)="algPanelOpen.update(v => !v)"
-    (toggleRightSidenav)="outputPanelOpen.update(v => !v)"
   />
 
   <div class="content-row">
 
-    <!-- Left column: algo strip + canvas/matrix tabs + playback -->
     <div class="left-col">
 
-      <!-- Algorithm panel — collapsible strip above canvas -->
+      <!-- Always-visible algorithm selector bar -->
+      <div class="algo-bar">
+        <mat-form-field appearance="outline" class="algo-select-field" subscriptSizing="dynamic">
+          <mat-label>Algorithm</mat-label>
+          <mat-select
+            [value]="runner.selectedAlgorithm()?.id ?? null"
+            (selectionChange)="runner.selectAlgorithm($event.value)">
+            @for (alg of runner.algorithms; track alg.id) {
+              <mat-option [value]="alg.id">{{ alg.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button mat-icon-button
+          (click)="algPanelOpen.update(v => !v)"
+          [matTooltip]="algPanelOpen() ? 'Collapse panel' : 'Expand panel'">
+          <mat-icon>{{ algPanelOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+      </div>
+
+      <!-- Collapsible algorithm config panel -->
       <div class="algo-strip" [class.collapsed]="!algPanelOpen()">
         <app-algorithm-panel (modeChange)="mode.set($event)" />
       </div>
@@ -26,7 +37,14 @@
       <mat-tab-group class="center-tabs" animationDuration="0ms">
         <mat-tab label="Canvas">
           <div class="tab-content">
-            <app-canvas [mode]="mode()" [darkMode]="darkMode()" />
+            <app-canvas
+              [mode]="mode()"
+              [darkMode]="darkMode()"
+              [outputPanelOpen]="outputPanelOpen()"
+              (modeChange)="mode.set($event)"
+              (toggleOutputPanel)="outputPanelOpen.update(v => !v)"
+              (loadPreset)="openPresetDialog()"
+            />
           </div>
         </mat-tab>
         <mat-tab label="Matrix">
@@ -42,7 +60,7 @@
 
     </div>
 
-    <!-- Output panel — collapsible right panel inline with canvas -->
+    <!-- Output panel — collapsible right panel -->
     <div class="output-side" [class.collapsed]="!outputPanelOpen()">
       <app-output-panel />
     </div>

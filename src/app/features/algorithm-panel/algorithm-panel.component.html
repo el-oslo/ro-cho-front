@@ -1,21 +1,6 @@
 <div class="panel-container">
-  <div class="panel-section">
-    <div class="section-header">Pathfinding</div>
-
-    <mat-nav-list dense>
-      @for (alg of runner.algorithms; track alg.id) {
-        <mat-list-item
-          [activated]="runner.selectedAlgorithm()?.id === alg.id"
-          (click)="selectAlgorithm(alg.id)"
-          class="alg-item">
-          <span matListItemTitle>{{ alg.name }}</span>
-        </mat-list-item>
-      }
-    </mat-nav-list>
-  </div>
 
   @if (runner.selectedAlgorithm(); as alg) {
-    <mat-divider />
 
     <div class="panel-section">
       <mat-card appearance="outlined" class="alg-card">
@@ -85,5 +70,14 @@
         Reset Graph
       </button>
     </div>
+
+  } @else {
+
+    <div class="no-selection">
+      <mat-icon>psychology</mat-icon>
+      <p>Select an algorithm from the dropdown above to configure and run it.</p>
+    </div>
+
   }
+
 </div>

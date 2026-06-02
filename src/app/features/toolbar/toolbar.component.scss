@@ -2,7 +2,6 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -10,23 +9,6 @@
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  white-space: nowrap;
 }
 
-.spacer {
-  flex: 1;
-}
-
-.toolbar-toggle {
-  height: 36px;
-}
-
-.toolbar-slide {
-  font-size: 0.875rem;
-}
-
-@media (max-width: 1200px) {
-  .sidenav-toggle {
-    display: flex;
-  }
-}
+.spacer { flex: 1; }

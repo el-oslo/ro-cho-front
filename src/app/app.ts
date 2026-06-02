@@ -2,6 +2,11 @@ import {
   Component, inject, signal, HostListener, OnInit
 } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -21,6 +26,7 @@ import { AlgorithmRunnerService } from './core/services/algorithm-runner.service
   standalone: true,
   imports: [
     MatTabsModule,
+    MatFormFieldModule, MatSelectModule, MatButtonModule, MatIconModule, MatTooltipModule,
     ToolbarComponent, AlgorithmPanelComponent,
     CanvasComponent, MatrixEditorComponent,
     PlaybackBarComponent, OutputPanelComponent,

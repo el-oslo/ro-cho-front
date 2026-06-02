@@ -1,69 +1,8 @@
 <mat-toolbar color="primary" class="app-toolbar">
-  <!-- Sidenav toggles (small screens) -->
-  <button mat-icon-button class="sidenav-toggle" (click)="toggleLeftSidenav.emit()"
-    matTooltip="Toggle algorithm panel">
-    <mat-icon>menu</mat-icon>
-  </button>
-
   <span class="app-title">Graph V</span>
-
   <span class="spacer"></span>
-
-  <!-- Directed / Undirected toggle -->
-  <mat-button-toggle-group [value]="directed ? 'directed' : 'undirected'"
-    (change)="onDirectedChange($event.value)" class="toolbar-toggle">
-    <mat-button-toggle value="undirected" matTooltip="Undirected graph">
-      <mat-icon>device_hub</mat-icon>
-    </mat-button-toggle>
-    <mat-button-toggle value="directed" matTooltip="Directed graph">
-      <mat-icon>arrow_forward</mat-icon>
-    </mat-button-toggle>
-  </mat-button-toggle-group>
-
-  <!-- Weighted toggle -->
-  <mat-slide-toggle [checked]="weighted" (change)="onWeightedChange($event.checked)"
-    class="toolbar-slide" matTooltip="Toggle weighted edges">
-    Weighted
-  </mat-slide-toggle>
-
-  <!-- Edit / Visualise mode toggle -->
-  <mat-button-toggle-group [value]="mode()" (change)="modeChange.emit($event.value)" class="toolbar-toggle mode-toggle">
-    <mat-button-toggle value="edit" matTooltip="Edit mode">
-      <mat-icon>edit</mat-icon>
-    </mat-button-toggle>
-    <mat-button-toggle value="visualise" matTooltip="Visualise mode">
-      <mat-icon>visibility</mat-icon>
-    </mat-button-toggle>
-  </mat-button-toggle-group>
-
-  <span class="spacer"></span>
-
-  <!-- Load Preset -->
-  <button mat-stroked-button (click)="loadPreset.emit()" matTooltip="Load a preset graph">
-    <mat-icon>folder_open</mat-icon>
-    Load Preset
-  </button>
-
-  <!-- Export JSON -->
-  <button mat-icon-button (click)="graphService.exportJSON()" matTooltip="Export graph as JSON">
-    <mat-icon>download</mat-icon>
-  </button>
-
-  <!-- Import JSON -->
-  <button mat-icon-button (click)="triggerImport()" matTooltip="Import graph from JSON">
-    <mat-icon>upload</mat-icon>
-  </button>
-  <input #fileInput type="file" accept=".json" hidden (change)="onFileSelected($event)">
-
-  <!-- Dark/Light theme toggle -->
   <button mat-icon-button (click)="darkModeChange.emit(!darkMode())"
     [matTooltip]="darkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
     <mat-icon>{{ darkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-  </button>
-
-  <!-- Right sidenav toggle -->
-  <button mat-icon-button class="sidenav-toggle" (click)="toggleRightSidenav.emit()"
-    matTooltip="Toggle output panel">
-    <mat-icon>bar_chart</mat-icon>
   </button>
 </mat-toolbar>

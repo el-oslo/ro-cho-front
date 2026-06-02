@@ -20,6 +20,44 @@
   50% { opacity: 0.6; r: 26; }
 }
 
+// ── Floating graph settings bar (top of canvas) ──────────────────────────────
+.graph-settings-float {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  padding: 6px 10px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.settings-toggle {
+  height: 32px;
+
+  ::ng-deep .mat-button-toggle-button {
+    height: 32px;
+  }
+}
+
+.settings-slide {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.settings-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--mat-sys-outline-variant);
+  flex-shrink: 0;
+}
+
 .canvas-controls {
   position: absolute;
   bottom: 56px;

@@ -1,5 +1,5 @@
 import {
-  Component, ElementRef, ViewChild, inject, effect, input, OnDestroy, HostListener, computed
+  Component, ElementRef, ViewChild, inject, effect, input, output, OnDestroy, HostListener, computed
 } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { CommonModule } from '@angular/common';
@@ -9,6 +9,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
 import { GraphService } from '../../core/services/graph.service';
 import { AlgorithmRunnerService } from '../../core/services/algorithm-runner.service';
@@ -21,7 +23,8 @@ import { ColorLegendComponent } from '../../shared/color-legend/color-legend.com
   standalone: true,
   imports: [
     CommonModule, MatButtonModule, MatIconModule, MatTooltipModule,
-    MatMenuModule, MatFormFieldModule, MatInputModule, FormsModule,
+    MatMenuModule, MatFormFieldModule, MatInputModule,
+    MatButtonToggleModule, MatSlideToggleModule, FormsModule,
     ColorLegendComponent,
   ],
   providers: [CanvasRenderService, CanvasInteractionService],
@@ -31,9 +34,15 @@ import { ColorLegendComponent } from '../../shared/color-legend/color-legend.com
 export class CanvasComponent implements OnDestroy {
   @ViewChild('svgEl') svgEl!: ElementRef<SVGSVGElement>;
   @ViewChild('ctxMenuTrigger') ctxMenuTrigger!: MatMenuTrigger;
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   readonly mode = input<'edit' | 'visualise'>('edit');
   readonly darkMode = input<boolean>(true);
+  readonly outputPanelOpen = input<boolean>(false);
+
+  readonly modeChange = output<'edit' | 'visualise'>();
+  readonly toggleOutputPanel = output<void>();
+  readonly loadPreset = output<void>();
 
   protected graphService = inject(GraphService);
   protected runner = inject(AlgorithmRunnerService);
@@ -102,7 +111,6 @@ export class CanvasComponent implements OnDestroy {
     );
   }
 
-  // SVG event handlers
   onMouseDown(e: MouseEvent) {
     this.interaction.handleMouseDown(e, this.svgEl.nativeElement, this.mode());
   }
@@ -142,17 +150,14 @@ export class CanvasComponent implements OnDestroy {
     const o = this.interaction.renameOverlay();
     if (o) this.interaction.confirmRename(o.id, this.renameValue);
   }
-
   cancelRename() {
     const o = this.interaction.renameOverlay();
     if (o) this.interaction.cancelRename(o.id);
   }
-
   confirmWeight() {
     const o = this.interaction.weightOverlay();
     if (o) { this.interaction.confirmWeight(o.edgeId, this.weightValue); }
   }
-
   cancelWeight() {
     this.interaction.weightOverlay.set(null);
   }
@@ -198,5 +203,23 @@ export class CanvasComponent implements OnDestroy {
         y: Math.round(cy + r * Math.sin(angle)),
       });
     });
+  }
+
+  onDirectedChange(value: string) {
+    this.graphService.setDirected(value === 'directed');
+  }
+
+  onWeightedChange(checked: boolean) {
+    this.graphService.setWeighted(checked);
+  }
+
+  triggerImport() {
+    this.fileInput.nativeElement.value = '';
+    this.fileInput.nativeElement.click();
+  }
+
+  async onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) await this.graphService.importJSON(file);
   }
 }

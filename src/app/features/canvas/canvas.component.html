@@ -1,4 +1,4 @@
-<div class="canvas-wrapper" >
+<div class="canvas-wrapper">
   <svg #svgEl
     class="canvas-svg"
     [style.background]="darkMode() ? '#1a1a2e' : '#f0f0f5'"
@@ -11,7 +11,74 @@
     (wheel)="onWheel($event)"
   ></svg>
 
-  <!-- Floating canvas controls -->
+  <!-- Floating graph settings bar (top of canvas) -->
+  <div class="graph-settings-float">
+
+    <!-- Directed / Undirected -->
+    <mat-button-toggle-group
+      [value]="graphService.graph().directed ? 'directed' : 'undirected'"
+      (change)="onDirectedChange($event.value)"
+      class="settings-toggle">
+      <mat-button-toggle value="undirected" matTooltip="Undirected graph">
+        <mat-icon>device_hub</mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="directed" matTooltip="Directed graph">
+        <mat-icon>arrow_forward</mat-icon>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <!-- Weighted -->
+    <mat-slide-toggle
+      [checked]="graphService.graph().weighted"
+      (change)="onWeightedChange($event.checked)"
+      class="settings-slide"
+      matTooltip="Toggle weighted edges">
+      Weighted
+    </mat-slide-toggle>
+
+    <!-- Edit / Visualise mode -->
+    <mat-button-toggle-group
+      [value]="mode()"
+      (change)="modeChange.emit($event.value)"
+      class="settings-toggle">
+      <mat-button-toggle value="edit" matTooltip="Edit mode">
+        <mat-icon>edit</mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="visualise" matTooltip="Visualise mode">
+        <mat-icon>visibility</mat-icon>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <div class="settings-sep"></div>
+
+    <!-- Load Preset -->
+    <button mat-icon-button (click)="loadPreset.emit()" matTooltip="Load preset graph">
+      <mat-icon>folder_open</mat-icon>
+    </button>
+
+    <!-- Export JSON -->
+    <button mat-icon-button (click)="graphService.exportJSON()" matTooltip="Export graph as JSON">
+      <mat-icon>download</mat-icon>
+    </button>
+
+    <!-- Import JSON -->
+    <button mat-icon-button (click)="triggerImport()" matTooltip="Import graph from JSON">
+      <mat-icon>upload</mat-icon>
+    </button>
+    <input #fileInput type="file" accept=".json" hidden (change)="onFileSelected($event)">
+
+    <div class="settings-sep"></div>
+
+    <!-- Output panel toggle -->
+    <button mat-icon-button
+      (click)="toggleOutputPanel.emit()"
+      [matTooltip]="outputPanelOpen() ? 'Hide results' : 'Show results'">
+      <mat-icon>{{ outputPanelOpen() ? 'bar_chart' : 'bar_chart' }}</mat-icon>
+    </button>
+
+  </div>
+
+  <!-- Canvas controls (bottom-right) -->
   <div class="canvas-controls">
     @if (mode() === 'edit') {
       <button mat-icon-button (click)="addVertexAtCenter()" matTooltip="Add vertex"><mat-icon>add_circle</mat-icon></button>
@@ -63,7 +130,7 @@
     </div>
   }
 
-  <!-- Context menu trigger — always in DOM, positioned on right-click -->
+  <!-- Context menu -->
   <div class="ctx-anchor"
     [style.left.px]="interaction.contextMenu()?.x ?? 0"
     [style.top.px]="interaction.contextMenu()?.y ?? 0"

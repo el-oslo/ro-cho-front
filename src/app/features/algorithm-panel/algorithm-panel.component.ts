@@ -68,10 +68,6 @@ export class AlgorithmPanelComponent {
     this.paramForm = new FormGroup(controls);
   }
 
-  selectAlgorithm(id: string) {
-    this.runner.selectAlgorithm(id);
-  }
-
   runAlgorithm() {
     const alg = this.runner.selectedAlgorithm();
     if (!alg || this.validationError()) return;
