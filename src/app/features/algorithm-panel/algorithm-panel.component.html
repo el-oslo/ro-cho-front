@@ -1,83 +1,165 @@
-<div class="panel-container">
+<div class="gv-rail">
 
-  @if (runner.selectedAlgorithm(); as alg) {
+  <!-- Type de graphe -->
+  <div class="gv-rail-section">
+    <div class="gv-label">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="8" r="2.4"/>
+        <path d="M6 8.4v7.2M8.2 7A6 6 0 0 1 16 9"/>
+      </svg>
+      <span>Type de graphe</span>
+    </div>
 
-    <div class="panel-section">
-      <mat-card appearance="outlined" class="alg-card">
-        <mat-card-header>
-          <mat-card-title>{{ alg.name }}</mat-card-title>
-          <mat-card-subtitle>{{ alg.description }}</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="chip-row">
-            @if (alg.requiresWeights) {
-              <span class="constraint-chip">Weighted</span>
-            }
-            <span class="constraint-chip">{{ getDirectednessLabel(alg) }}</span>
-          </div>
+    <div class="gv-seg gv-seg-full">
+      <button [class.on]="!graphService.graph().directed" (click)="setDirected(false)">Non orienté</button>
+      <button [class.on]="graphService.graph().directed" (click)="setDirected(true)">Orienté</button>
+    </div>
 
-          @if (validationError()) {
-            <div class="validation-error">
-              <mat-icon>error</mat-icon>
-              {{ validationError() }}
+    <label class="gv-switch-row">
+      <span>Pondéré</span>
+      <button class="gv-switch" [class.on]="graphService.graph().weighted"
+              role="switch" [attr.aria-checked]="graphService.graph().weighted"
+              (click)="setWeighted(!graphService.graph().weighted)">
+        <span class="gv-switch-knob"></span>
+      </button>
+    </label>
+  </div>
+
+  <div class="gv-rail-divider"></div>
+
+  <!-- Sélecteur d'algorithme -->
+  <div class="gv-rail-section">
+    <div class="gv-label">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="7" y="7" width="10" height="10" rx="1.5"/>
+        <line x1="10" y1="4" x2="10" y2="7"/><line x1="14" y1="4" x2="14" y2="7"/>
+        <line x1="10" y1="17" x2="10" y2="20"/><line x1="14" y1="17" x2="14" y2="20"/>
+        <line x1="4" y1="10" x2="7" y2="10"/><line x1="4" y1="14" x2="7" y2="14"/>
+        <line x1="17" y1="10" x2="20" y2="10"/><line x1="17" y1="14" x2="20" y2="14"/>
+      </svg>
+      <span>Algorithme</span>
+    </div>
+
+    <div class="gv-select-wrap">
+      <button class="gv-select" (click)="algDropdownOpen = !algDropdownOpen">
+        @if (runner.selectedAlgorithm(); as alg) {
+          <span class="gv-select-main">
+            <span class="gv-select-name">{{ alg.name }}</span>
+            <span class="gv-select-sub">{{ alg.description }}</span>
+          </span>
+        } @else {
+          <span class="gv-select-main">
+            <span class="gv-select-name" style="color: var(--ink-400)">Sélectionner un algorithme</span>
+          </span>
+        }
+        <span class="gv-select-caret" [class.open]="algDropdownOpen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </span>
+      </button>
+
+      @if (algDropdownOpen) {
+        <div class="gv-select-menu">
+          @for (alg of runner.algorithms; track alg.id) {
+            <button class="gv-select-item"
+                    [class.sel]="alg.id === runner.selectedAlgorithm()?.id"
+                    (click)="selectAlgorithm(alg.id)">
+              <span class="gv-select-name">{{ alg.name }}</span>
+              <span class="gv-select-sub">{{ alg.description }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (runner.selectedAlgorithm(); as alg) {
+      <div class="gv-chip-row">
+        <span class="gv-chip" [class.gv-chip-amber]="alg.requiresWeights" [class.gv-chip-neutral]="!alg.requiresWeights">
+          {{ alg.requiresWeights ? 'Poids requis' : 'Poids facultatif' }}
+        </span>
+        <span class="gv-chip gv-chip-accent">{{ getDirectednessLabel(alg) }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="gv-rail-divider"></div>
+
+  <!-- Paramètres -->
+  <div class="gv-rail-section gv-rail-grow">
+    <div class="gv-label">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="20" y2="8"/><circle cx="16" cy="8" r="2"/>
+        <line x1="4" y1="16" x2="8" y2="16"/><line x1="12" y1="16" x2="20" y2="16"/><circle cx="10" cy="16" r="2"/>
+      </svg>
+      <span>Paramètres</span>
+    </div>
+
+    @if (runner.selectedAlgorithm(); as alg) {
+      @if (validationError(); as err) {
+        <div class="gv-validation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 3 2 20h20Z"/><line x1="12" y1="9" x2="12" y2="14"/><line x1="12" y1="17" x2="12" y2="17.5"/>
+          </svg>
+          <span>{{ err }}</span>
+        </div>
+      } @else if (alg.inputs.length === 0) {
+        <p class="gv-empty-note">Aucun paramètre requis pour cet algorithme.</p>
+      } @else {
+        <form [formGroup]="paramForm" class="gv-fields">
+          @for (inp of alg.inputs; track inp.key) {
+            <div class="gv-field">
+              <label>{{ inp.label }}<em>{{ inp.required ? ' *' : '' }}</em></label>
+
+              @if (inp.type === 'vertex-select') {
+                <div class="gv-native-select">
+                  <select [formControlName]="inp.key">
+                    @if (!inp.required) {
+                      <option [value]="null">— Aucun —</option>
+                    }
+                    @for (v of graphService.graph().vertices; track v.id) {
+                      <option [value]="v.id">{{ v.label }}</option>
+                    }
+                  </select>
+                  <span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </span>
+                </div>
+              } @else if (inp.type === 'number') {
+                <input class="gv-input" type="number" [formControlName]="inp.key">
+              } @else if (inp.type === 'boolean') {
+                <label class="gv-checkbox-row">
+                  <input type="checkbox" [formControlName]="inp.key">
+                  <span>{{ inp.label }}</span>
+                </label>
+              }
             </div>
           }
-        </mat-card-content>
-      </mat-card>
-    </div>
+        </form>
+      }
+    } @else {
+      <p class="gv-empty-note">Sélectionnez un algorithme ci-dessus pour le configurer.</p>
+    }
+  </div>
 
-    <mat-divider />
-
-    <div class="panel-section">
-      <div class="section-header">Parameters</div>
-      <form [formGroup]="paramForm" class="param-form">
-        @for (input of alg.inputs; track input.key) {
-          @if (input.type === 'vertex-select') {
-            <mat-form-field appearance="outline" class="param-field">
-              <mat-label>{{ input.label }}</mat-label>
-              <mat-select [formControlName]="input.key">
-                @if (!input.required) {
-                  <mat-option [value]="null">— None —</mat-option>
-                }
-                @for (v of graphService.graph().vertices; track v.id) {
-                  <mat-option [value]="v.id">{{ v.label }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          } @else if (input.type === 'number') {
-            <mat-form-field appearance="outline" class="param-field">
-              <mat-label>{{ input.label }}</mat-label>
-              <input matInput type="number" [formControlName]="input.key">
-            </mat-form-field>
-          } @else if (input.type === 'boolean') {
-            <mat-checkbox [formControlName]="input.key">{{ input.label }}</mat-checkbox>
-          }
-        }
-      </form>
-    </div>
-
-    <mat-divider />
-
-    <div class="panel-section action-buttons">
-      <button mat-raised-button color="accent"
-        [disabled]="!!validationError() || paramForm.invalid"
-        (click)="runAlgorithm()">
-        <mat-icon>play_arrow</mat-icon>
-        Run Algorithm
-      </button>
-      <button mat-stroked-button color="warn" (click)="resetGraph()">
-        <mat-icon>restart_alt</mat-icon>
-        Reset Graph
-      </button>
-    </div>
-
-  } @else {
-
-    <div class="no-selection">
-      <mat-icon>psychology</mat-icon>
-      <p>Select an algorithm from the dropdown above to configure and run it.</p>
-    </div>
-
-  }
+  <!-- Actions -->
+  <div class="gv-rail-actions">
+    <button class="gv-btn-primary"
+            [disabled]="!runner.selectedAlgorithm() || !!validationError() || paramForm.invalid"
+            (click)="runAlgorithm()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <path d="M6 4l14 8-14 8Z"/>
+      </svg>
+      <span>Lancer l'algorithme</span>
+    </button>
+    <button class="gv-btn-ghost" (click)="resetGraph()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 8 8 8"/>
+      </svg>
+      <span>Réinitialiser le graphe</span>
+    </button>
+  </div>
 
 </div>

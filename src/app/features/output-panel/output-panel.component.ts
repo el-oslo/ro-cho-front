@@ -1,21 +1,11 @@
 import { Component, inject, computed, ViewChild, ElementRef, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatListModule } from '@angular/material/list';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
 import { AlgorithmRunnerService } from '../../core/services/algorithm-runner.service';
 import { GraphService } from '../../core/services/graph.service';
 
 @Component({
   selector: 'app-output-panel',
   standalone: true,
-  imports: [
-    CommonModule, MatTableModule, MatChipsModule, MatListModule,
-    MatExpansionModule, MatIconModule, MatDividerModule,
-  ],
+  imports: [],
   templateUrl: './output-panel.component.html',
   styleUrl: './output-panel.component.scss',
 })
@@ -31,7 +21,6 @@ export class OutputPanelComponent {
   readonly stepIndex = computed(() => this.runner.currentStepIndex());
   readonly isLast = computed(() => this.runner.currentStepIndex() >= this.runner.steps().length - 1);
 
-  // Dijkstra table rows
   readonly dijkstraRows = computed(() => {
     const s = this.step();
     if (!s) return [];
@@ -48,7 +37,6 @@ export class OutputPanelComponent {
     }));
   });
 
-  // Bellman-Ford rows
   readonly bfRows = computed(() => {
     const s = this.step();
     if (!s) return [];
@@ -65,7 +53,6 @@ export class OutputPanelComponent {
   readonly bfPass = computed(() => (this.step()?.metadata?.['pass'] as number) ?? 0);
   readonly bfNegCycle = computed(() => !!(this.step()?.metadata?.['negCycleDetected']));
 
-  // A* data
   readonly astarOpenSet = computed(() => (this.step()?.metadata?.['openSet'] as any[]) ?? []);
   readonly astarClosedSet = computed(() => (this.step()?.metadata?.['closedSet'] as any[]) ?? []);
   readonly astarCurrentNode = computed(() => {
@@ -79,7 +66,6 @@ export class OutputPanelComponent {
     return entry ? { label: v?.label ?? cur, f: entry.f, g: entry.g, h: entry.h } : null;
   });
 
-  // Demoucron Hamiltonian
   readonly demPath = computed(() => {
     const ids = (this.step()?.metadata?.['currentPath'] as string[]) ?? [];
     return ids.map(id => this.graphService.graph().vertices.find(v => v.id === id)?.label ?? id);
@@ -87,10 +73,8 @@ export class OutputPanelComponent {
   readonly demBacktracks = computed(() => (this.step()?.metadata?.['backtracks'] as number) ?? 0);
   readonly demStatus = computed(() => (this.step()?.metadata?.['status'] as string) ?? 'searching');
 
-  // Demoucron CHO
   readonly choMeta = computed(() => this.step()?.metadata as Record<string, unknown> | null ?? null);
   readonly choMode = computed(() => (this.choMeta()?.['mode'] as 'min' | 'max') ?? 'min');
-  readonly choPhase = computed(() => (this.choMeta()?.['phase'] as string) ?? 'init');
   readonly choLabels = computed(() => (this.choMeta()?.['vertexLabels'] as string[]) ?? []);
   readonly choMatrix = computed(() => (this.choMeta()?.['matrixSnapshot'] as (number | string)[][]) ?? []);
   readonly choIntermediate = computed(() => this.choMeta()?.['currentIntermediate'] as string | null ?? null);
@@ -100,6 +84,7 @@ export class OutputPanelComponent {
   readonly choImproved = computed(() => !!(this.choMeta()?.['improved']));
   readonly choOptimalPath = computed(() => (this.choMeta()?.['optimalPath'] as string[]) ?? []);
   readonly choOptimalValue = computed(() => this.choMeta()?.['optimalValue'] as number | null ?? null);
+  readonly choMatrixIndex = computed(() => (this.choMeta()?.['matrixIndex'] as number) ?? 0);
 
   choColClass(colIdx: number): string {
     const k = this.choLabels().indexOf(this.choIntermediate() ?? '');
@@ -116,7 +101,6 @@ export class OutputPanelComponent {
     return '';
   }
 
-  // Final result
   readonly finalPath = computed(() => {
     const s = this.steps();
     if (!s.length) return [];
@@ -140,8 +124,7 @@ export class OutputPanelComponent {
   readonly exploredCount = computed(() => {
     const s = this.steps();
     if (!s.length) return 0;
-    const last = s[s.length - 1];
-    return ((last.metadata['closedSet'] as string[]) ?? []).length;
+    return ((s[s.length - 1].metadata['closedSet'] as string[]) ?? []).length;
   });
 
   constructor() {
@@ -160,5 +143,15 @@ export class OutputPanelComponent {
 
   vertexLabel(id: string) {
     return this.graphService.graph().vertices.find(v => v.id === id)?.label ?? id;
+  }
+
+  statusLabel(status: string, active: boolean): string {
+    if (active) return 'Actif';
+    const map: Record<string, string> = {
+      visited: 'Visité',
+      frontier: 'Frontière',
+      unvisited: 'Non visité',
+    };
+    return map[status] ?? status;
   }
 }

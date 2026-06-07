@@ -1,14 +1,136 @@
-.app-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+.gv-topbar {
+  height: var(--topbar-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 30;
+}
+
+// ── Brand ─────────────────────────────────────────────────────────────────────
+.gv-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.gv-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-base) 28%, transparent);
   flex-shrink: 0;
 }
 
-.app-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+.gv-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
 }
 
-.spacer { flex: 1; }
+.gv-brand-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--ink-900);
+  letter-spacing: -.01em;
+}
+
+.gv-brand-sub {
+  font-size: 11px;
+  color: var(--ink-400);
+  font-weight: 450;
+}
+
+// ── Mode segmented control ────────────────────────────────────────────────────
+.gv-mode-seg {
+  margin-left: 8px;
+  display: flex;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 3px;
+  gap: 2px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 550;
+    color: var(--ink-500);
+    transition: all .16s ease;
+
+    &.on {
+      background: var(--surface);
+      color: var(--ink-900);
+      box-shadow: var(--shadow-sm);
+    }
+
+    &:not(.on):hover {
+      color: var(--ink-700);
+    }
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+.gv-topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gv-top-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--ink-700);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: all .16s ease;
+
+  svg { color: var(--accent-base); }
+
+  &:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-2);
+  }
+}
+
+.gv-top-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-500);
+  border: 1px solid transparent;
+  transition: all .16s ease;
+
+  &:hover {
+    background: var(--paper);
+    color: var(--ink-800);
+    border-color: var(--border);
+  }
+}
+
+.gv-top-div {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 4px;
+}

@@ -1,12 +1,6 @@
 import {
   Component, inject, signal, HostListener, OnInit
 } from '@angular/core';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -25,8 +19,6 @@ import { AlgorithmRunnerService } from './core/services/algorithm-runner.service
   selector: 'app-root',
   standalone: true,
   imports: [
-    MatTabsModule,
-    MatFormFieldModule, MatSelectModule, MatButtonModule, MatIconModule, MatTooltipModule,
     ToolbarComponent, AlgorithmPanelComponent,
     CanvasComponent, MatrixEditorComponent,
     PlaybackBarComponent, OutputPanelComponent,
@@ -41,9 +33,8 @@ export class App implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   readonly mode = signal<'edit' | 'visualise'>('edit');
-  readonly darkMode = signal<boolean>(true);
-  readonly algPanelOpen = signal<boolean>(false);
-  readonly outputPanelOpen = signal<boolean>(false);
+  readonly darkMode = signal<boolean>(false);
+  readonly activeTab = signal<'canvas' | 'matrix'>('canvas');
 
   ngOnInit() {
     const stored = localStorage.getItem('darkMode');
@@ -53,7 +44,7 @@ export class App implements OnInit {
   @HostListener('window:keydown', ['$event'])
   onGlobalKey(e: KeyboardEvent) {
     const tag = (e.target as HTMLElement)?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
     if (e.code === 'Space') { e.preventDefault(); this.togglePlay(); }
     if (e.key === 'ArrowRight') { e.preventDefault(); this.runner.nextStep(); }
@@ -61,7 +52,7 @@ export class App implements OnInit {
     if (e.ctrlKey && e.key === 'z' && this.mode() === 'edit') {
       e.preventDefault();
       if (this.graphService.undo()) {
-        this.snackBar.open('Undo', undefined, { duration: 1200 });
+        this.snackBar.open('Annuler', undefined, { duration: 1200 });
       }
     }
   }
@@ -92,7 +83,7 @@ export class App implements OnInit {
         a.presets.some(p => p.name === result.preset.name)
       )?.id;
       if (algId) this.runner.selectAlgorithm(algId);
-      this.snackBar.open(`Loaded preset: ${result.preset.name}`, 'OK', { duration: 2500 });
+      this.snackBar.open(`Modèle chargé : ${result.preset.name}`, 'OK', { duration: 2500 });
     });
   }
 }

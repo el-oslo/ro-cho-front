@@ -99,7 +99,7 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
       if (targetParam && path[path.length - 1] !== targetParam) return false;
       found = true;
       steps.push(makeStep(
-        `Hamiltonian path found: ${path.map(id => graph.vertices.find(v => v.id === id)?.label ?? id).join(' → ')}`,
+        `Chemin hamiltonien trouvé : ${path.map(id => graph.vertices.find(v => v.id === id)?.label ?? id).join(' → ')}`,
         path, 'found'
       ));
       return true;
@@ -112,7 +112,7 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
       backtracks++;
       const lastLabel = graph.vertices.find(v => v.id === last)?.label ?? last;
       steps.push(makeStep(
-        `Pruned at ${lastLabel} — remaining graph disconnected (${backtracks} backtracks)`,
+        `Élagage en ${lastLabel} — graphe résiduel déconnecté (${backtracks} retours arrière)`,
         path, 'searching'
       ));
       return false;
@@ -135,14 +135,14 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
       path.push(nb);
       remaining.delete(nb);
       const nbLabel = graph.vertices.find(v => v.id === nb)?.label ?? nb;
-      steps.push(makeStep(`Extend path to ${nbLabel}`, path, 'searching'));
+      steps.push(makeStep(`Étendre le chemin vers ${nbLabel}`, path, 'searching'));
 
       if (backtrack(path, remaining)) return true;
 
       path.pop();
       remaining.add(nb);
       backtracks++;
-      steps.push(makeStep(`Backtrack from ${nbLabel} (${backtracks} total)`, path, 'searching'));
+      steps.push(makeStep(`Retour arrière depuis ${nbLabel} (${backtracks} au total)`, path, 'searching'));
     }
 
     return false;
@@ -155,15 +155,15 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
     const remaining = new Set(vertices.filter(v => v !== start));
     const path = [start];
     const startLabel = graph.vertices.find(v => v.id === start)?.label ?? start;
-    steps.push(makeStep(`Start search from ${startLabel}`, path, 'searching'));
+    steps.push(makeStep(`Démarrer la recherche depuis ${startLabel}`, path, 'searching'));
 
     if (backtrack(path, remaining)) break;
   }
 
   if (!found && !capped) {
-    steps.push(makeStep('No Hamiltonian path exists in this graph.', [], 'no-path'));
+    steps.push(makeStep('Aucun chemin hamiltonien n\'existe dans ce graphe.', [], 'no-path'));
   } else if (capped) {
-    steps.push(makeStep(`Search capped at ${MAX_STEPS} steps — graph may be too large.`, [], 'no-path'));
+    steps.push(makeStep(`Recherche limitée à ${MAX_STEPS} étapes — le graphe est peut-être trop grand.`, [], 'no-path'));
   }
 
   return steps;
@@ -171,20 +171,20 @@ export function runDemoucron(graph: Graph, params: Record<string, unknown>): Alg
 
 export const demoucronDef: AlgorithmDef = {
   id: 'demoucron',
-  name: 'Demoucron Hamiltonian Path',
+  name: 'Demoucron — Chemin Hamiltonien',
   description:
-    'Backtracking search for a Hamiltonian path (visits every vertex exactly once). ' +
-    'Uses Warnsdorff\'s rule (try low-degree neighbours first) and BFS connectivity pruning.',
+    'Recherche par retour arrière d\'un chemin hamiltonien (visite chaque sommet exactement une fois). ' +
+    'Utilise la règle de Warnsdorff (essayer d\'abord les voisins de faible degré) et l\'élagage par connexité BFS.',
   requiresWeights: false,
   requiresDirected: null,
   inputs: [
-    { key: 'source', label: 'Start vertex (optional)', type: 'vertex-select', required: false },
-    { key: 'target', label: 'End vertex (optional)',   type: 'vertex-select', required: false },
+    { key: 'source', label: 'Sommet de départ (optionnel)', type: 'vertex-select', required: false },
+    { key: 'target', label: 'Sommet d\'arrivée (optionnel)', type: 'vertex-select', required: false },
   ],
   presets: [
     {
-      name: 'Complete Graph K5',
-      description: '5-node complete graph — a Hamiltonian path always exists.',
+      name: 'Graphe complet K5',
+      description: 'Graphe complet à 5 nœuds — un chemin hamiltonien existe toujours.',
       graph: {
         directed: false, weighted: false,
         vertices: [
@@ -210,8 +210,8 @@ export const demoucronDef: AlgorithmDef = {
       defaultParams: {},
     },
     {
-      name: 'No Hamiltonian Path (6 nodes)',
-      description: '6-node graph where the structure prevents a Hamiltonian path.',
+      name: 'Sans chemin hamiltonien (6 nœuds)',
+      description: 'Graphe à 6 nœuds dont la structure empêche l\'existence d\'un chemin hamiltonien.',
       graph: {
         directed: false, weighted: false,
         vertices: [
@@ -236,7 +236,7 @@ export const demoucronDef: AlgorithmDef = {
   ],
   validate(graph) {
     if (graph.vertices.length > 12) {
-      return 'Warning: more than 12 vertices — search may be slow.';
+      return 'Attention : plus de 12 sommets — la recherche peut être lente.';
     }
     return null;
   },

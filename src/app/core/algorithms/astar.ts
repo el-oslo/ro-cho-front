@@ -86,13 +86,13 @@ export function runAstar(graph: Graph, params: Record<string, unknown>): Algorit
     };
   };
 
-  steps.push(makeStep(`Initialise A* from ${vertexMap.get(source)?.label} to ${vertexMap.get(target)?.label}`));
+  steps.push(makeStep(`Initialisation A* de ${vertexMap.get(source)?.label} à ${vertexMap.get(target)?.label}`));
 
   while (openSet.size > 0) {
     let current = [...openSet].reduce((a, b) => f[a] <= f[b] ? a : b);
     const currentLabel = vertexMap.get(current)?.label ?? current;
     steps.push(makeStep(
-      `Evaluate ${currentLabel} — f = g + h = ${g[current].toFixed(1)} + ${h[current].toFixed(1)} = ${f[current].toFixed(1)}`,
+      `Évaluer ${currentLabel} — f = g + h = ${g[current].toFixed(1)} + ${h[current].toFixed(1)} = ${f[current].toFixed(1)}`,
       current
     ));
 
@@ -107,7 +107,7 @@ export function runAstar(graph: Graph, params: Record<string, unknown>): Algorit
         )?.id;
         if (eid) last.edgeStates[eid] = 'path';
       }
-      last.description = `Path found! Total cost: ${g[target].toFixed(1)}`;
+      last.description = `Chemin trouvé ! Coût total : ${g[target].toFixed(1)}`;
       last.metadata = { ...last.metadata, currentPath: path };
       return steps;
     }
@@ -130,31 +130,31 @@ export function runAstar(graph: Graph, params: Record<string, unknown>): Algorit
         openSet.add(neighbor);
         const nLabel = vertexMap.get(neighbor)?.label ?? neighbor;
         steps.push(makeStep(
-          `Update ${nLabel}: g=${tentativeG.toFixed(1)}, f=${f[neighbor].toFixed(1)}`,
+          `Mettre à jour ${nLabel} : g=${tentativeG.toFixed(1)}, f=${f[neighbor].toFixed(1)}`,
           current
         ));
       }
     }
   }
 
-  steps.push(makeStep(`No path found from ${vertexMap.get(source)?.label} to ${vertexMap.get(target)?.label}`));
+  steps.push(makeStep(`Aucun chemin de ${vertexMap.get(source)?.label} à ${vertexMap.get(target)?.label}`));
   return steps;
 }
 
 export const astarDef: AlgorithmDef = {
   id: 'astar',
-  name: 'A* Search',
-  description: 'Heuristic pathfinding using Euclidean distance. Finds optimal paths faster than Dijkstra when positions are meaningful.',
+  name: 'Recherche A*',
+  description: 'Recherche de chemin heuristique utilisant la distance euclidienne. Trouve les chemins optimaux plus vite que Dijkstra lorsque les positions sont pertinentes.',
   requiresWeights: true,
   requiresDirected: null,
   inputs: [
-    { key: 'source', label: 'Source vertex', type: 'vertex-select', required: true },
-    { key: 'target', label: 'Target vertex', type: 'vertex-select', required: true },
+    { key: 'source', label: 'Sommet source', type: 'vertex-select', required: true },
+    { key: 'target', label: 'Sommet cible', type: 'vertex-select', required: true },
   ],
   presets: [
     {
-      name: 'Grid Layout (9 nodes)',
-      description: '9-node grid-like graph where spatial layout makes the heuristic effective.',
+      name: 'Grille (9 nœuds)',
+      description: 'Graphe en grille à 9 nœuds où la disposition spatiale rend l\'heuristique efficace.',
       graph: {
         directed: false, weighted: true,
         vertices: [
@@ -187,8 +187,8 @@ export const astarDef: AlgorithmDef = {
       defaultParams: { source: 'a1', target: 'a9' },
     },
     {
-      name: 'Sparse Graph (7 nodes)',
-      description: '7-node sparse graph where the heuristic must navigate around a detour.',
+      name: 'Graphe clairsemé (7 nœuds)',
+      description: 'Graphe clairsemé à 7 nœuds où l\'heuristique doit contourner un détour.',
       graph: {
         directed: false, weighted: true,
         vertices: [
@@ -214,7 +214,7 @@ export const astarDef: AlgorithmDef = {
     },
   ],
   validate(graph) {
-    if (!graph.weighted) return 'A* requires a weighted graph.';
+    if (!graph.weighted) return 'A* nécessite un graphe pondéré.';
     return null;
   },
   run: runAstar,

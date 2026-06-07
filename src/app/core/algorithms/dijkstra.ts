@@ -106,7 +106,7 @@ export function runDijkstra(graph: Graph, params: Record<string, unknown>): Algo
     };
   };
 
-  steps.push(makeStep(`Initialise: distance to ${graph.vertices.find(v => v.id === source)?.label} = 0`));
+  steps.push(makeStep(`Initialisation : distance vers ${graph.vertices.find(v => v.id === source)?.label} = 0`));
 
   while (pq.size > 0) {
     const { id: u, dist: du } = pq.pop()!;
@@ -115,7 +115,7 @@ export function runDijkstra(graph: Graph, params: Record<string, unknown>): Algo
 
     const uLabel = graph.vertices.find(v => v.id === u)?.label ?? u;
     const path = target ? buildPath(previous, u) : [];
-    steps.push(makeStep(`Visit ${uLabel} (dist = ${du === inf ? '∞' : du})`, u, undefined, path));
+    steps.push(makeStep(`Visiter ${uLabel} (dist = ${du === inf ? '∞' : du})`, u, undefined, path));
 
     if (target && u === target) break;
 
@@ -134,7 +134,7 @@ export function runDijkstra(graph: Graph, params: Record<string, unknown>): Algo
         pq.push(v, newDist);
         const vLabel = graph.vertices.find(x => x.id === v)?.label ?? v;
         steps.push(makeStep(
-          `Relax edge ${uLabel}→${vLabel}: dist[${vLabel}] = ${newDist}`,
+          `Relâcher l'arête ${uLabel}→${vLabel} : dist[${vLabel}] = ${newDist}`,
           u, edge.id, target ? buildPath(previous, v) : []
         ));
       }
@@ -145,8 +145,8 @@ export function runDijkstra(graph: Graph, params: Record<string, unknown>): Algo
   const finalDist = target ? distances[target] : null;
   steps.push(makeStep(
     target
-      ? `Done. Shortest path to ${graph.vertices.find(v => v.id === target)?.label}: ${finalDist === inf ? 'unreachable' : finalDist}`
-      : `Done. All reachable vertices processed.`,
+      ? `Terminé. Plus court chemin vers ${graph.vertices.find(v => v.id === target)?.label} : ${finalDist === inf ? 'inaccessible' : finalDist}`
+      : `Terminé. Tous les sommets accessibles ont été traités.`,
     undefined, undefined, finalPath
   ));
 
@@ -165,18 +165,18 @@ export function runDijkstra(graph: Graph, params: Record<string, unknown>): Algo
 
 export const dijkstraDef: AlgorithmDef = {
   id: 'dijkstra',
-  name: "Dijkstra's Algorithm",
-  description: 'Finds shortest paths from a source vertex using a min-heap priority queue. Requires non-negative edge weights.',
+  name: "Algorithme de Dijkstra",
+  description: 'Calcule les plus courts chemins depuis un sommet source à l\'aide d\'une file de priorité (tas min). Nécessite des poids d\'arêtes positifs.',
   requiresWeights: true,
   requiresDirected: null,
   inputs: [
-    { key: 'source', label: 'Source vertex', type: 'vertex-select', required: true },
-    { key: 'target', label: 'Target vertex (optional)', type: 'vertex-select', required: false },
+    { key: 'source', label: 'Sommet source', type: 'vertex-select', required: true },
+    { key: 'target', label: 'Sommet cible (optionnel)', type: 'vertex-select', required: false },
   ],
   presets: [
     {
-      name: 'City Map (6 nodes)',
-      description: '6-node weighted undirected graph representing a city road network.',
+      name: 'Plan de ville (6 nœuds)',
+      description: 'Graphe non orienté pondéré à 6 nœuds représentant un réseau routier urbain.',
       graph: {
         directed: false, weighted: true,
         vertices: [
@@ -201,8 +201,8 @@ export const dijkstraDef: AlgorithmDef = {
       defaultParams: { source: 'v1', target: 'v6' },
     },
     {
-      name: 'Directed Network (7 nodes)',
-      description: '7-node weighted directed graph simulating a routing network.',
+      name: 'Réseau orienté (7 nœuds)',
+      description: 'Graphe orienté pondéré à 7 nœuds simulant un réseau de routage.',
       graph: {
         directed: true, weighted: true,
         vertices: [
@@ -229,9 +229,9 @@ export const dijkstraDef: AlgorithmDef = {
     },
   ],
   validate(graph) {
-    if (!graph.weighted) return 'Dijkstra requires a weighted graph.';
+    if (!graph.weighted) return 'Dijkstra nécessite un graphe pondéré.';
     const neg = graph.edges.find(e => (e.weight ?? 0) < 0);
-    if (neg) return 'Dijkstra does not support negative edge weights.';
+    if (neg) return 'Dijkstra ne supporte pas les poids négatifs.';
     return null;
   },
   run: runDijkstra,

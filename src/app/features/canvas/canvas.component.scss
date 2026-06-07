@@ -15,79 +15,61 @@
   }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; r: 22; }
-  50% { opacity: 0.6; r: 26; }
-}
-
-// ── Floating graph settings bar (top of canvas) ──────────────────────────────
-.graph-settings-float {
+// ── Floating canvas tools (bottom-right) ──────────────────────────────────────
+.gv-canvas-tools {
   position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--mat-sys-surface-container-high);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
-  padding: 6px 10px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
-.settings-toggle {
-  height: 32px;
-
-  ::ng-deep .mat-button-toggle-button {
-    height: 32px;
-  }
-}
-
-.settings-slide {
-  font-size: 0.8rem;
-  white-space: nowrap;
-}
-
-.settings-sep {
-  width: 1px;
-  height: 24px;
-  background: var(--mat-sys-outline-variant);
-  flex-shrink: 0;
-}
-
-.canvas-controls {
-  position: absolute;
-  bottom: 56px;
-  right: 12px;
+  bottom: 16px;
+  right: 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(30, 30, 50, 0.75);
-  border-radius: 8px;
-  padding: 4px;
-  backdrop-filter: blur(4px);
+  z-index: 10;
+  background: var(--surface);
+  padding: 5px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
 
-  .ctrl-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.15);
-    margin: 2px 4px;
+  button {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-600);
+    transition: all .14s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--paper);
+      color: var(--accent-deep);
+    }
+
+    &:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+    }
   }
 }
 
+.gv-tools-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 0;
+}
+
+// ── Rename / weight float overlays ────────────────────────────────────────────
 .float-overlay {
   position: fixed;
   z-index: 200;
-  background: var(--mat-sys-surface);
-  border: 1px solid var(--mat-sys-outline);
-  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  box-shadow: var(--shadow-lg);
   transform: translateX(-50%) translateY(-100%);
 
   .overlay-field { width: 160px; }
@@ -101,6 +83,7 @@
   pointer-events: none;
 }
 
+// ── Color legend ──────────────────────────────────────────────────────────────
 .legend-row {
   position: absolute;
   bottom: 8px;

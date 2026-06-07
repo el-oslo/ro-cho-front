@@ -106,33 +106,22 @@ export class CanvasRenderService {
 
   private makeDefs(svg: SVGSVGElement): SVGDefsElement {
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    for (const [state, color] of Object.entries(STATE_COLORS)) {
+    // One marker per edge state — compact triangle matching the redesign
+    for (const [state, color] of Object.entries(EDGE_COLORS)) {
       const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-      marker.setAttribute('id', `arrow-${state}`);
-      marker.setAttribute('markerWidth', '8');
-      marker.setAttribute('markerHeight', '8');
-      marker.setAttribute('refX', '6');
-      marker.setAttribute('refY', '3');
+      marker.setAttribute('id', `edge-arrow-${state}`);
+      marker.setAttribute('viewBox', '0 0 10 10');
+      marker.setAttribute('markerWidth', '2');
+      marker.setAttribute('markerHeight', '2');
+      marker.setAttribute('refX', '4');
+      marker.setAttribute('refY', '5');
       marker.setAttribute('orient', 'auto');
-      const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      poly.setAttribute('points', '0 0, 8 3, 0 6');
-      poly.setAttribute('fill', color);
-      marker.appendChild(poly);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M 0 1.5 L 8 5 L 0 8.5 Z');
+      path.setAttribute('fill', color);
+      marker.appendChild(path);
       defs.appendChild(marker);
     }
-    // Default arrow
-    const defMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-    defMarker.setAttribute('id', 'arrow-default');
-    defMarker.setAttribute('markerWidth', '8');
-    defMarker.setAttribute('markerHeight', '8');
-    defMarker.setAttribute('refX', '6');
-    defMarker.setAttribute('refY', '3');
-    defMarker.setAttribute('orient', 'auto');
-    const defPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    defPoly.setAttribute('points', '0 0, 8 3, 0 6');
-    defPoly.setAttribute('fill', '#BDBDBD');
-    defMarker.appendChild(defPoly);
-    defs.appendChild(defMarker);
     return defs;
   }
 
@@ -188,8 +177,8 @@ export class CanvasRenderService {
 
     const startX = src.x + ux * VERTEX_RADIUS;
     const startY = src.y + uy * VERTEX_RADIUS;
-    const endX = tgt.x - ux * (VERTEX_RADIUS + (directed ? 10 : 0));
-    const endY = tgt.y - uy * (VERTEX_RADIUS + (directed ? 10 : 0));
+    const endX = tgt.x - ux * (VERTEX_RADIUS + (directed ? 8 : 0));
+    const endY = tgt.y - uy * (VERTEX_RADIUS + (directed ? 8 : 0));
 
     const midX = (startX + endX) / 2 - uy * 20;
     const midY = (startY + endY) / 2 + ux * 20;
@@ -201,8 +190,7 @@ export class CanvasRenderService {
     path.setAttribute('stroke', color);
     path.setAttribute('stroke-width', state === 'path' ? '3' : '2');
     if (directed) {
-      const markerId = Object.keys(STATE_COLORS).includes(state) ? `arrow-${state}` : 'arrow-default';
-      path.setAttribute('marker-end', `url(#${markerId})`);
+      path.setAttribute('marker-end', `url(#edge-arrow-${state})`);
     }
     path.setAttribute('data-edge-id', edge.id);
     grp.appendChild(path);

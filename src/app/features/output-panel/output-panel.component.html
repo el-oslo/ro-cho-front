@@ -1,249 +1,264 @@
 <div class="output-container">
   @if (runner.selectedAlgorithm(); as alg) {
-    <!-- Header -->
+
+    <!-- En-tête -->
     <div class="output-header">
+      <div class="alg-kicker">{{ runner.hasRun() ? 'Exécution en direct' : 'Aperçu de l\'algorithme' }}</div>
       <div class="alg-name">{{ alg.name }}</div>
       @if (step(); as s) {
         <div class="step-desc">{{ s.description }}</div>
       }
     </div>
 
-    <mat-divider />
+    <div class="explainer-body">
 
-    <!-- Metadata by algorithm -->
-    @if (runner.hasRun()) {
-      <div class="meta-section">
+      @if (runner.hasRun()) {
 
-        <!-- DIJKSTRA -->
-        @if (algId() === 'dijkstra') {
-          <table mat-table [dataSource]="dijkstraRows()" class="meta-table">
-            <ng-container matColumnDef="label">
-              <th mat-header-cell *matHeaderCellDef>Vertex</th>
-              <td mat-cell *matCellDef="let row" [class.active-row]="row.active">{{ row.label }}</td>
-            </ng-container>
-            <ng-container matColumnDef="distance">
-              <th mat-header-cell *matHeaderCellDef>Distance</th>
-              <td mat-cell *matCellDef="let row" [class.active-row]="row.active">{{ row.distance }}</td>
-            </ng-container>
-            <ng-container matColumnDef="previous">
-              <th mat-header-cell *matHeaderCellDef>Previous</th>
-              <td mat-cell *matCellDef="let row" [class.active-row]="row.active">{{ row.previous }}</td>
-            </ng-container>
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let row" [class.active-row]="row.active">{{ row.status }}</td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="['label','distance','previous','status']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['label','distance','previous','status']"></tr>
-          </table>
-        }
-
-        <!-- BELLMAN-FORD -->
-        @if (algId() === 'bellman-ford') {
-          <div class="pass-info">Pass {{ bfPass() }} / {{ graphService.graph().vertices.length - 1 }}</div>
-          @if (bfNegCycle()) {
-            <mat-chip-set class="neg-chip"><mat-chip color="warn" highlighted>⚠ Negative cycle found</mat-chip></mat-chip-set>
-          } @else if (isLast()) {
-            <mat-chip-set><mat-chip>No negative cycle detected</mat-chip></mat-chip-set>
-          }
-          <table mat-table [dataSource]="bfRows()" class="meta-table">
-            <ng-container matColumnDef="label">
-              <th mat-header-cell *matHeaderCellDef>Vertex</th>
-              <td mat-cell *matCellDef="let row">{{ row.label }}</td>
-            </ng-container>
-            <ng-container matColumnDef="distance">
-              <th mat-header-cell *matHeaderCellDef>Distance</th>
-              <td mat-cell *matCellDef="let row">{{ row.distance }}</td>
-            </ng-container>
-            <ng-container matColumnDef="previous">
-              <th mat-header-cell *matHeaderCellDef>Previous</th>
-              <td mat-cell *matCellDef="let row">{{ row.previous }}</td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="['label','distance','previous']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['label','distance','previous']"></tr>
-          </table>
-        }
-
-        <!-- A* -->
-        @if (algId() === 'astar') {
-          @if (astarCurrentNode(); as node) {
-            <div class="astar-card">
-              Evaluating <strong>{{ node.label }}</strong> — f = g + h = {{ node.g }} + {{ node.h }} = {{ node.f }}
-            </div>
-          }
-          <div class="astar-sets">
-            <div class="set-block">
-              <div class="set-label">Open Set</div>
-              <table mat-table [dataSource]="astarOpenSet()" class="meta-table compact">
-                <ng-container matColumnDef="id">
-                  <th mat-header-cell *matHeaderCellDef>Vertex</th>
-                  <td mat-cell *matCellDef="let row">{{ vertexLabel(row.id) }}</td>
-                </ng-container>
-                <ng-container matColumnDef="f">
-                  <th mat-header-cell *matHeaderCellDef>f</th>
-                  <td mat-cell *matCellDef="let row">{{ row.f }}</td>
-                </ng-container>
-                <ng-container matColumnDef="g">
-                  <th mat-header-cell *matHeaderCellDef>g</th>
-                  <td mat-cell *matCellDef="let row">{{ row.g }}</td>
-                </ng-container>
-                <ng-container matColumnDef="h">
-                  <th mat-header-cell *matHeaderCellDef>h</th>
-                  <td mat-cell *matCellDef="let row">{{ row.h }}</td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="['id','f','g','h']"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['id','f','g','h']"></tr>
-              </table>
-            </div>
-            <div class="set-block">
-              <div class="set-label">Closed Set</div>
-              <table mat-table [dataSource]="astarClosedSet()" class="meta-table compact">
-                <ng-container matColumnDef="id">
-                  <th mat-header-cell *matHeaderCellDef>Vertex</th>
-                  <td mat-cell *matCellDef="let row">{{ vertexLabel(row.id) }}</td>
-                </ng-container>
-                <ng-container matColumnDef="finalCost">
-                  <th mat-header-cell *matHeaderCellDef>Final Cost</th>
-                  <td mat-cell *matCellDef="let row">{{ row.finalCost }}</td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="['id','finalCost']"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['id','finalCost']"></tr>
-              </table>
-            </div>
+        <!-- Narration -->
+        @if (step(); as s) {
+          <div class="gv-narration">
+            <div class="gv-narration-step">Étape {{ stepIndex() + 1 }} / {{ steps().length }}</div>
+            <p>{{ s.description }}</p>
           </div>
         }
 
-        <!-- DEMOUCRON HAMILTONIAN -->
-        @if (algId() === 'demoucron') {
-          <div class="dem-status-row">
-            @if (demStatus() === 'found') {
-              <mat-chip color="accent" highlighted>Path found</mat-chip>
-            } @else if (demStatus() === 'no-path') {
-              <mat-chip color="warn" highlighted>No Hamiltonian path exists</mat-chip>
-            } @else {
-              <mat-chip>Searching…</mat-chip>
-            }
-            <span class="backtrack-count">{{ demBacktracks() }} backtracks</span>
-          </div>
-          <mat-chip-set class="path-chips">
-            @for (label of demPath(); track label) {
-              <mat-chip>{{ label }}</mat-chip>
-            }
-          </mat-chip-set>
-        }
+        <!-- Métadonnées par algorithme -->
+        <div class="meta-section">
 
-        <!-- DEMOUCRON CHO -->
-        @if (algId() === 'demoucron-cho') {
-          <div class="cho-header-row">
-            <mat-chip [color]="choMode() === 'min' ? 'primary' : 'accent'" highlighted>
-              {{ choMode() === 'min' ? 'Minimize (Shortest)' : 'Maximize (Longest)' }}
-            </mat-chip>
-            @if (choIntermediate()) {
-              <span class="cho-pivot">Intermediate: <strong>{{ choIntermediate() }}</strong></span>
-            }
-          </div>
-          @if (choWValue() !== null) {
-            <div class="cho-formula" [class.cho-improved]="choImproved()">
-              W[{{ choLabels()[choCurrentI()!] }}][{{ choLabels()[choCurrentJ()!] }}]
-              = {{ choWValue() }}
-              @if (choImproved()) { <span class="cho-badge">improved</span> }
+          <!-- DIJKSTRA -->
+          @if (algId() === 'dijkstra') {
+            <div class="gv-sub-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M12 3 3 8l9 5 9-5Z"/><polyline points="3 13 12 18 21 13"/>
+              </svg>
+              <span>Distances</span>
             </div>
-          }
-          @if (choMatrix().length > 0) {
-            <div class="cho-matrix-wrap">
-              <table class="cho-matrix">
-                <thead>
-                  <tr>
-                    <th></th>
-                    @for (lbl of choLabels(); track $index; let ci = $index) {
-                      <th [class]="choColClass(ci)">{{ lbl }}</th>
-                    }
-                  </tr>
-                </thead>
+            <div class="gv-state-table-wrap">
+              <table class="meta-table">
+                <thead><tr><th>Sommet</th><th>Dist.</th><th>Préd.</th><th>État</th></tr></thead>
                 <tbody>
-                  @for (row of choMatrix(); track $index; let ri = $index) {
-                    <tr>
-                      <th>{{ choLabels()[ri] }}</th>
-                      @for (cell of row; track $index; let ci = $index) {
-                        <td [class]="choCellClass(ri, ci)">{{ cell }}</td>
-                      }
+                  @for (row of dijkstraRows(); track row.id) {
+                    <tr [class.active-row]="row.active">
+                      <td class="mono bold">{{ row.label }}</td>
+                      <td class="mono">{{ row.distance }}</td>
+                      <td class="mono" style="color: var(--ink-400)">{{ row.previous }}</td>
+                      <td>
+                        <span class="gv-status"
+                          [class.st-active]="row.active"
+                          [class.st-visited]="!row.active && row.status === 'visited'"
+                          [class.st-frontier]="!row.active && row.status === 'frontier'"
+                          [class.st-un]="!row.active && row.status === 'unvisited'">
+                          {{ statusLabel(row.status, row.active) }}
+                        </span>
+                      </td>
                     </tr>
                   }
                 </tbody>
               </table>
             </div>
           }
-          @if (choOptimalPath().length > 0) {
-            <div class="cho-result">
-              <mat-chip-set class="path-chips">
-                @for (lbl of choOptimalPath(); track $index) {
-                  <mat-chip>{{ lbl }}</mat-chip>
-                  @if ($index < choOptimalPath().length - 1) {
-                    <span class="arrow">→</span>
+
+          <!-- BELLMAN-FORD -->
+          @if (algId() === 'bellman-ford') {
+            <div class="pass-info">Passe {{ bfPass() }} / {{ graphService.graph().vertices.length - 1 }}</div>
+            @if (bfNegCycle()) {
+              <div style="padding: 8px 10px; background: #fff4f3; border: 1px solid #f6d4d0; border-radius: var(--r-sm); font-size: 12px; color: #b4392f;">⚠ Cycle négatif détecté</div>
+            }
+            <div class="gv-state-table-wrap">
+              <table class="meta-table">
+                <thead><tr><th>Sommet</th><th>Distance</th><th>Préd.</th></tr></thead>
+                <tbody>
+                  @for (row of bfRows(); track row.id) {
+                    <tr>
+                      <td class="mono bold">{{ row.label }}</td>
+                      <td class="mono">{{ row.distance }}</td>
+                      <td class="mono" style="color: var(--ink-400)">{{ row.previous }}</td>
+                    </tr>
                   }
-                }
-              </mat-chip-set>
-              @if (choOptimalValue() !== null) {
-                <div class="total-dist">Total: {{ choOptimalValue() }}</div>
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- A* -->
+          @if (algId() === 'astar') {
+            @if (astarCurrentNode(); as node) {
+              <div class="astar-card">
+                Évaluation de <strong>{{ node.label }}</strong> — f = g + h = {{ node.g }} + {{ node.h }} = {{ node.f }}
+              </div>
+            }
+            <div class="astar-sets">
+              <div class="set-block">
+                <div class="set-label">Liste ouverte</div>
+                <table class="meta-table compact">
+                  <thead><tr><th>S</th><th>f</th><th>g</th><th>h</th></tr></thead>
+                  <tbody>
+                    @for (row of astarOpenSet(); track row.id) {
+                      <tr><td>{{ vertexLabel(row.id) }}</td><td>{{ row.f }}</td><td>{{ row.g }}</td><td>{{ row.h }}</td></tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <div class="set-block">
+                <div class="set-label">Liste fermée</div>
+                <table class="meta-table compact">
+                  <thead><tr><th>S</th><th>Coût</th></tr></thead>
+                  <tbody>
+                    @for (row of astarClosedSet(); track row.id) {
+                      <tr><td>{{ vertexLabel(row.id) }}</td><td>{{ row.finalCost }}</td></tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- DEMOUCRON HAMILTONIEN -->
+          @if (algId() === 'demoucron') {
+            <div class="dem-status-row">
+              <span class="gv-status"
+                [class.st-visited]="demStatus() === 'found'"
+                [class.st-active]="demStatus() === 'no-path'"
+                [class.st-frontier]="demStatus() === 'searching'">
+                {{ demStatus() === 'found' ? 'Chemin trouvé' : demStatus() === 'no-path' ? 'Aucun chemin hamiltonien' : 'En recherche…' }}
+              </span>
+              <span class="backtrack-count">{{ demBacktracks() }} retours arrière</span>
+            </div>
+            <div class="path-chips">
+              @for (label of demPath(); track $index) {
+                <span class="path-node">{{ label }}</span>
               }
             </div>
           }
-        }
-      </div>
 
-      <mat-divider />
-
-      <!-- Step log -->
-      <div class="step-log" #stepList>
-        <div class="log-title">Step Log</div>
-        <div class="log-scroll">
-          @for (s of steps(); track s.stepIndex) {
-            <div class="log-item" [class.step-active]="s.stepIndex === stepIndex()">
-              <span class="log-idx">{{ s.stepIndex + 1 }}</span>
-              <span class="log-desc">{{ s.description }}</span>
+          <!-- DEMOUCRON CHO -->
+          @if (algId() === 'demoucron-cho') {
+            <div class="cho-header-row">
+              <span class="gv-status" [class.st-frontier]="choMode() === 'min'" [class.st-active]="choMode() === 'max'">
+                {{ choMode() === 'min' ? 'Minimiser' : 'Maximiser' }}
+              </span>
+              @if (choIntermediate()) {
+                <span class="cho-pivot">Intermédiaire : <strong>{{ choIntermediate() }}</strong></span>
+              }
             </div>
+            @if (choWValue() !== null) {
+              <div class="cho-formula" [class.cho-improved]="choImproved()">
+                W[{{ choLabels()[choCurrentI()!] }}][{{ choLabels()[choCurrentJ()!] }}] = {{ choWValue() }}
+                @if (choImproved()) { <span class="cho-badge">amélioré</span> }
+              </div>
+            }
+            @if (choMatrix().length > 0) {
+              <div class="cho-matrix-wrap">
+                <div class="cho-matrix-label">
+                  Matrice D<sup>{{ choMatrixIndex() }}</sup>
+                </div>
+                <table class="cho-matrix">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      @for (lbl of choLabels(); track $index; let ci = $index) {
+                        <th [class]="choColClass(ci)">{{ lbl }}</th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of choMatrix(); track $index; let ri = $index) {
+                      <tr>
+                        <th>{{ choLabels()[ri] }}</th>
+                        @for (cell of row; track $index; let ci = $index) {
+                          <td [class]="choCellClass(ri, ci)">{{ cell }}</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           }
         </div>
-      </div>
 
-      <mat-divider />
-
-      <!-- Final result -->
-      @if (isLast() && finalPath().length > 0) {
-        <mat-expansion-panel [expanded]="true" class="result-panel">
-          <mat-expansion-panel-header>
-            <mat-panel-title>Result</mat-panel-title>
-          </mat-expansion-panel-header>
-
-          <div class="result-content">
-            <mat-chip-set class="path-chips">
-              @for (label of finalPath(); track $index) {
-                <mat-chip>{{ label }}</mat-chip>
-                @if ($index < finalPath().length - 1) {
-                  <span class="arrow">→</span>
-                }
-              }
-            </mat-chip-set>
-
-            @if (finalDistance() !== null) {
-              <div class="total-dist">Total distance: {{ finalDistance() }}</div>
-            }
-
-            @if (algId() === 'astar') {
-              <div class="explored-count">Explored nodes: {{ exploredCount() }}</div>
-            }
-
-            @if (algId() === 'bellman-ford' && bfNegCycle()) {
-              <mat-chip color="warn" highlighted>⚠ Negative cycle found</mat-chip>
+        <!-- Journal des étapes -->
+        <div class="step-log">
+          <div class="gv-sub-label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/>
+              <circle cx="4.5" cy="6" r=".6"/><circle cx="4.5" cy="12" r=".6"/><circle cx="4.5" cy="18" r=".6"/>
+            </svg>
+            <span>Journal des étapes</span>
+          </div>
+          <div class="log-scroll" #stepList>
+            @for (s of steps(); track s.stepIndex) {
+              <div class="log-item" [class.step-active]="s.stepIndex === stepIndex()">
+                <span class="log-idx">{{ s.stepIndex + 1 }}</span>
+                <span class="log-desc">{{ s.description }}</span>
+              </div>
             }
           </div>
-        </mat-expansion-panel>
+        </div>
+
+        <!-- Résultat final -->
+        @if (isLast() && finalPath().length > 0) {
+          <div class="result-card">
+            <div class="gv-sub-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="6" cy="19" r="2.4"/><circle cx="18" cy="5" r="2.4"/>
+                <path d="M8.4 19H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.6"/>
+              </svg>
+              <span>Chemin optimal</span>
+            </div>
+            <div class="path-chips">
+              @for (label of finalPath(); track $index) {
+                <span class="path-node">{{ label }}</span>
+                @if ($index < finalPath().length - 1) {
+                  <span class="path-arrow">›</span>
+                }
+              }
+            </div>
+            @if (finalDistance() !== null) {
+              <div class="result-metric">
+                <span>Coût total</span>
+                <strong>{{ finalDistance() }}</strong>
+              </div>
+            }
+            @if (algId() === 'bellman-ford' && bfNegCycle()) {
+              <div style="font-size:12px; color:#b4392f;">⚠ Cycle négatif détecté</div>
+            }
+          </div>
+        }
+
+        @if (algId() === 'demoucron-cho' && choOptimalPath().length > 0) {
+          <div class="result-card">
+            <div class="path-chips">
+              @for (lbl of choOptimalPath(); track $index) {
+                <span class="path-node">{{ lbl }}</span>
+                @if ($index < choOptimalPath().length - 1) {
+                  <span class="path-arrow">›</span>
+                }
+              }
+            </div>
+            @if (choOptimalValue() !== null) {
+              <div class="result-metric">
+                <span>{{ choMode() === 'min' ? 'Coût minimum' : 'Coût maximum' }}</span>
+                <strong>{{ choOptimalValue() }}</strong>
+              </div>
+            }
+          </div>
+        }
+
+      } @else {
+        <!-- Aperçu statique -->
+        <div style="font-size: 13.5px; line-height: 1.6; color: var(--ink-600);">{{ alg.description }}</div>
       }
-    }
+
+    </div>
+
   } @else {
     <div class="empty-state">
-      <mat-icon>account_tree</mat-icon>
-      <p>Select an algorithm to get started.</p>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="8" r="2.4"/>
+        <path d="M6 8.4v7.2M8.2 7A6 6 0 0 1 16 9"/>
+      </svg>
+      <p>Sélectionnez un algorithme dans le panneau gauche pour commencer.</p>
     </div>
   }
 </div>

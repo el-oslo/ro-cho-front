@@ -6,9 +6,9 @@ import { demoucronDef } from './demoucron';
 import { demoucronChoDef } from './demoucron-cho';
 
 export const ALGORITHM_REGISTRY: AlgorithmDef[] = [
-  demoucronDef,
+  // demoucronDef,
   demoucronChoDef,
   dijkstraDef,
-  bellmanFordDef,
-  astarDef,
+  // bellmanFordDef,
+  // astarDef,
 ];

@@ -1,7 +1,7 @@
 <div class="canvas-wrapper">
   <svg #svgEl
     class="canvas-svg"
-    [style.background]="darkMode() ? '#1a1a2e' : '#f0f0f5'"
+    [style.background]="darkMode() ? '#12161e' : 'var(--canvas-bg)'"
     (click)="onClick($event)"
     (mousedown)="onMouseDown($event)"
     (mousemove)="onMouseMove($event)"
@@ -11,126 +11,87 @@
     (wheel)="onWheel($event)"
   ></svg>
 
-  <!-- Floating graph settings bar (top of canvas) -->
-  <div class="graph-settings-float">
-
-    <!-- Directed / Undirected -->
-    <mat-button-toggle-group
-      [value]="graphService.graph().directed ? 'directed' : 'undirected'"
-      (change)="onDirectedChange($event.value)"
-      class="settings-toggle">
-      <mat-button-toggle value="undirected" matTooltip="Undirected graph">
-        <mat-icon>device_hub</mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="directed" matTooltip="Directed graph">
-        <mat-icon>arrow_forward</mat-icon>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
-
-    <!-- Weighted -->
-    <mat-slide-toggle
-      [checked]="graphService.graph().weighted"
-      (change)="onWeightedChange($event.checked)"
-      class="settings-slide"
-      matTooltip="Toggle weighted edges">
-      Weighted
-    </mat-slide-toggle>
-
-    <!-- Edit / Visualise mode -->
-    <mat-button-toggle-group
-      [value]="mode()"
-      (change)="modeChange.emit($event.value)"
-      class="settings-toggle">
-      <mat-button-toggle value="edit" matTooltip="Edit mode">
-        <mat-icon>edit</mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="visualise" matTooltip="Visualise mode">
-        <mat-icon>visibility</mat-icon>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
-
-    <div class="settings-sep"></div>
-
-    <!-- Load Preset -->
-    <button mat-icon-button (click)="loadPreset.emit()" matTooltip="Load preset graph">
-      <mat-icon>folder_open</mat-icon>
-    </button>
-
-    <!-- Export JSON -->
-    <button mat-icon-button (click)="graphService.exportJSON()" matTooltip="Export graph as JSON">
-      <mat-icon>download</mat-icon>
-    </button>
-
-    <!-- Import JSON -->
-    <button mat-icon-button (click)="triggerImport()" matTooltip="Import graph from JSON">
-      <mat-icon>upload</mat-icon>
-    </button>
-    <input #fileInput type="file" accept=".json" hidden (change)="onFileSelected($event)">
-
-    <div class="settings-sep"></div>
-
-    <!-- Output panel toggle -->
-    <button mat-icon-button
-      (click)="toggleOutputPanel.emit()"
-      [matTooltip]="outputPanelOpen() ? 'Hide results' : 'Show results'">
-      <mat-icon>{{ outputPanelOpen() ? 'bar_chart' : 'bar_chart' }}</mat-icon>
-    </button>
-
-  </div>
-
-  <!-- Canvas controls (bottom-right) -->
-  <div class="canvas-controls">
+  <!-- Outils (en bas à droite) -->
+  <div class="gv-canvas-tools">
     @if (mode() === 'edit') {
-      <button mat-icon-button (click)="addVertexAtCenter()" matTooltip="Add vertex"><mat-icon>add_circle</mat-icon></button>
-      <button mat-icon-button (click)="deleteSelected()" [disabled]="!hasSelection()"
-        matTooltip="Delete selected"><mat-icon>delete</mat-icon></button>
-      <button mat-icon-button (click)="circularLayout()" matTooltip="Circular layout"><mat-icon>radio_button_unchecked</mat-icon></button>
-      <div class="ctrl-divider"></div>
+      <button (click)="addVertexAtCenter()" title="Ajouter un sommet">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </button>
+      <button (click)="deleteSelected()" [disabled]="!hasSelection()" title="Supprimer la sélection">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+        </svg>
+      </button>
+      <button (click)="circularLayout()" title="Disposition circulaire">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="9"/>
+        </svg>
+      </button>
+      <div class="gv-tools-sep"></div>
     }
-    <button mat-icon-button (click)="zoomIn()" matTooltip="Zoom in"><mat-icon>zoom_in</mat-icon></button>
-    <button mat-icon-button (click)="zoomOut()" matTooltip="Zoom out"><mat-icon>zoom_out</mat-icon></button>
-    <button mat-icon-button (click)="fitToScreen()" matTooltip="Fit to screen"><mat-icon>fit_screen</mat-icon></button>
-    <button mat-icon-button (click)="toggleGrid()"
-      [matTooltip]="renderService.showGrid() ? 'Hide grid' : 'Show grid'">
-      <mat-icon>grid_on</mat-icon>
+    <button (click)="zoomIn()" title="Zoom avant">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16" y2="16"/>
+        <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+      </svg>
+    </button>
+    <button (click)="zoomOut()" title="Zoom arrière">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16" y2="16"/><line x1="8" y1="11" x2="14" y2="11"/>
+      </svg>
+    </button>
+    <button (click)="fitToScreen()" title="Ajuster à l'écran">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M4 9V5a1 1 0 0 1 1-1h4"/><path d="M20 9V5a1 1 0 0 0-1-1h-4"/>
+        <path d="M4 15v4a1 1 0 0 0 1 1h4"/><path d="M20 15v4a1 1 0 0 1-1 1h-4"/>
+      </svg>
+    </button>
+    <button (click)="toggleGrid()" [title]="renderService.showGrid() ? 'Masquer la grille' : 'Afficher la grille'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/>
+        <line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/>
+      </svg>
     </button>
   </div>
 
-  <!-- Rename overlay -->
+  <!-- Superposition de renommage -->
   @if (interaction.renameOverlay(); as overlay) {
     <div class="float-overlay" [style.left.px]="overlay.x" [style.top.px]="overlay.y">
       <mat-form-field appearance="outline" class="overlay-field">
-        <mat-label>Label</mat-label>
+        <mat-label>Étiquette</mat-label>
         <input matInput [(ngModel)]="renameValue"
           (keydown.enter)="confirmRename()"
           (keydown.escape)="cancelRename()"
           autofocus>
       </mat-form-field>
       <div class="overlay-actions">
-        <button mat-button (click)="cancelRename()">Cancel</button>
+        <button mat-button (click)="cancelRename()">Annuler</button>
         <button mat-raised-button color="accent" (click)="confirmRename()">OK</button>
       </div>
     </div>
   }
 
-  <!-- Weight overlay -->
+  <!-- Superposition de poids -->
   @if (interaction.weightOverlay(); as overlay) {
     <div class="float-overlay" [style.left.px]="overlay.x" [style.top.px]="overlay.y">
       <mat-form-field appearance="outline" class="overlay-field">
-        <mat-label>Weight</mat-label>
+        <mat-label>Poids</mat-label>
         <input matInput type="number" [(ngModel)]="weightValue"
           (keydown.enter)="confirmWeight()"
           (keydown.escape)="cancelWeight()"
           autofocus>
       </mat-form-field>
       <div class="overlay-actions">
-        <button mat-button (click)="cancelWeight()">Cancel</button>
+        <button mat-button (click)="cancelWeight()">Annuler</button>
         <button mat-raised-button color="accent" (click)="confirmWeight()">OK</button>
       </div>
     </div>
   }
 
-  <!-- Context menu -->
+  <!-- Menu contextuel -->
   <div class="ctx-anchor"
     [style.left.px]="interaction.contextMenu()?.x ?? 0"
     [style.top.px]="interaction.contextMenu()?.y ?? 0"
@@ -142,20 +103,20 @@
     @if (interaction.contextMenu(); as ctx) {
       @if (ctx.type === 'vertex') {
         <button mat-menu-item (click)="interaction.contextMenuAction('rename', ctx.id, 'vertex')">
-          <mat-icon>edit</mat-icon> Rename
+          <mat-icon>edit</mat-icon> Renommer
         </button>
         <button mat-menu-item (click)="interaction.contextMenuAction('delete', ctx.id, 'vertex')">
-          <mat-icon>delete</mat-icon> Delete
+          <mat-icon>delete</mat-icon> Supprimer
         </button>
       } @else {
         <button mat-menu-item (click)="interaction.contextMenuAction('delete', ctx.id, 'edge')">
-          <mat-icon>delete</mat-icon> Delete edge
+          <mat-icon>delete</mat-icon> Supprimer l'arête
         </button>
       }
     }
   </mat-menu>
 
-  <!-- Color legend (visualise mode only) -->
+  <!-- Légende (mode visualisation) -->
   @if (mode() === 'visualise') {
     <div class="legend-row">
       <app-color-legend />

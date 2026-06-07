@@ -3,11 +3,6 @@
  *
  * Floyd-Warshall style iterative matrix relaxation for directed weighted graphs.
  * Supports both min (shortest) and max (longest) path objectives.
- *
- * Correctness note vs. React reference: reconstructPath here correctly handles
- * direct edges (prev[i][j] === null but V[i][j] !== EMPTY) by returning [i, j]
- * instead of null. The React version omits this case and silently produces no path
- * for pairs connected only by a direct arc with no intermediate improvement.
  */
 
 import { Graph } from '../models/graph.models';
@@ -21,6 +16,7 @@ type PrevMatrix = (number | null)[][];
 
 interface ChoMeta {
   matrixSnapshot:      (number | string)[][];
+  matrixIndex:         number;   // 0 = D⁰ (init), k+1 = D^(k+1) after pass k
   vertexLabels:        string[];
   currentIntermediate: string | null;
   currentI:            number | null;
@@ -33,27 +29,20 @@ interface ChoMeta {
   phase:               'init' | 'relaxation' | 'reconstruction' | 'done';
 }
 
-function displayVal(v: number, mode: 'min' | 'max'): string {
+function displayVal(v: number): string {
   if (v === INF)  return '+∞';
   if (v === NINF) return '-∞';
   return String(v);
 }
 
-function snapshot(m: Matrix, mode: 'min' | 'max'): (number | string)[][] {
-  return m.map(row => row.map(v => (v === INF || v === NINF) ? displayVal(v, mode) : v));
+function snapshot(m: Matrix): (number | string)[][] {
+  return m.map(row => row.map(v => (v === INF || v === NINF) ? displayVal(v) : v));
 }
 
 function clone(m: Matrix): Matrix {
   return m.map(row => [...row]);
 }
 
-/**
- * Reconstructs the optimal path between src and tgt using the prev matrix.
- *
- * Bug fix: when prev[src][tgt] === null it means the value was set directly
- * from an edge in the initialisation phase (no intermediate ever improved it).
- * We check V[src][tgt] !== EMPTY to distinguish a direct edge from no path.
- */
 function reconstructPath(
   prev: PrevMatrix,
   V: Matrix,
@@ -62,13 +51,10 @@ function reconstructPath(
   tgt: number
 ): number[] | null {
   if (src === tgt) return [src];
-
   const k = prev[src][tgt];
   if (k === null) {
-    // Direct edge (set during init, never improved via intermediate) vs. no path
     return V[src][tgt] !== EMPTY ? [src, tgt] : null;
   }
-
   const left  = reconstructPath(prev, V, EMPTY, src, k);
   const right = reconstructPath(prev, V, EMPTY, k, tgt);
   if (!left || !right) return null;
@@ -97,7 +83,6 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
   const srcIdx = sourceId ? (idToIdx.get(sourceId) ?? null) : null;
   const tgtIdx = targetId ? (idToIdx.get(targetId) ?? null) : null;
 
-  // ── Build initial matrix D¹ ──────────────────────────────────────────────
   const V: Matrix = Array.from({ length: n }, (_, i) =>
     Array.from({ length: n }, (_, j) => (i === j ? 0 : EMPTY))
   );
@@ -114,7 +99,6 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
     if (!graph.directed && betterThan(w, V[j][i])) V[j][i] = w;
   }
 
-  // Helper: build vertex/edge states for a step
   function buildStates(
     hI: number | null,
     hJ: number | null,
@@ -123,6 +107,7 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
   ): { vertexStates: Record<string, VertexState>; edgeStates: Record<string, EdgeState> } {
     const vertexStates: Record<string, VertexState> = {};
     const edgeStates:   Record<string, EdgeState>   = {};
+
     const pathSet = new Set(pathIdx);
     const pathEdges = new Set<string>();
     for (let p = 0; p < pathIdx.length - 1; p++) {
@@ -131,6 +116,7 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
       pathEdges.add(`${a}->${b}`);
       if (!graph.directed) pathEdges.add(`${b}->${a}`);
     }
+
     for (let i = 0; i < n; i++) {
       const id = vertices[i].id;
       if (pathSet.size && pathSet.has(i)) vertexStates[id] = 'path';
@@ -138,9 +124,31 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
       else if (i === hI || i === hJ)      vertexStates[id] = 'frontier';
       else                                vertexStates[id] = 'unvisited';
     }
+
+    const kId = hK !== null ? vertices[hK]?.id : null;
+    const iId = hI !== null ? vertices[hI]?.id : null;
+    const jId = hJ !== null ? vertices[hJ]?.id : null;
+
     for (const edge of graph.edges) {
-      edgeStates[edge.id] = pathEdges.has(`${edge.source}->${edge.target}`) ? 'path' : 'default';
+      if (pathEdges.has(`${edge.source}->${edge.target}`)) {
+        edgeStates[edge.id] = 'path';
+      } else if (kId && iId && jId) {
+        const isIK = edge.source === iId && edge.target === kId;
+        const isKJ = edge.source === kId && edge.target === jId;
+        if (!graph.directed) {
+          const isKI = edge.source === kId && edge.target === iId;
+          const isJK = edge.source === jId && edge.target === kId;
+          edgeStates[edge.id] = (isIK || isKJ || isKI || isJK) ? 'traversed' : 'default';
+        } else {
+          edgeStates[edge.id] = (isIK || isKJ) ? 'traversed' : 'default';
+        }
+      } else if (kId) {
+        edgeStates[edge.id] = (edge.source === kId || edge.target === kId) ? 'traversed' : 'default';
+      } else {
+        edgeStates[edge.id] = 'default';
+      }
     }
+
     return { vertexStates, edgeStates };
   }
 
@@ -148,10 +156,12 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
     hI: number | null, hJ: number | null, hK: number | null,
     wValue: number | null, improved: boolean,
     optimalPath: string[], optimalValue: number | null,
-    phase: ChoMeta['phase']
+    phase: ChoMeta['phase'],
+    matrixIndex: number
   ): ChoMeta {
     return {
-      matrixSnapshot: snapshot(clone(V), mode),
+      matrixSnapshot: snapshot(clone(V)),
+      matrixIndex,
       vertexLabels:   labels,
       currentIntermediate: hK !== null ? labels[hK] : null,
       currentI:   hI,
@@ -167,18 +177,18 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
 
   let idx = 0;
 
-  // ── Init step ────────────────────────────────────────────────────────────
+  // ── Étape d'initialisation ────────────────────────────────────────────────
   {
     const { vertexStates, edgeStates } = buildStates(null, null, null, []);
     steps.push({
       stepIndex: idx++,
-      description: `Init: build matrix D¹ from direct edges (∞ = no direct link).`,
+      description: `Initialisation : construire la matrice D⁰ à partir des arêtes directes (∞ = aucun lien direct).`,
       vertexStates, edgeStates,
-      metadata: makeMeta(null, null, null, null, false, [], null, 'init') as unknown as Record<string, unknown>,
+      metadata: makeMeta(null, null, null, null, false, [], null, 'init', 0) as unknown as Record<string, unknown>,
     });
   }
 
-  // ── Relaxation passes k = 0 … n-1 ────────────────────────────────────────
+  // ── Passes de relaxation k = 0 … n-1 ──────────────────────────────────────
   for (let k = 0; k < n; k++) {
     const kLabel = labels[k];
 
@@ -186,9 +196,9 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
       const { vertexStates, edgeStates } = buildStates(null, null, k, []);
       steps.push({
         stepIndex: idx++,
-        description: `Step k=${k + 1}: allow intermediate vertex "${kLabel}". Compute W[i][j] = V[i][${kLabel}] + V[${kLabel}][j].`,
+        description: `Passe k=${k + 1} : permettre le sommet intermédiaire « ${kLabel} ». Calculer W[i][j] = V[i][${kLabel}] + V[${kLabel}][j].`,
         vertexStates, edgeStates,
-        metadata: makeMeta(null, null, k, null, false, [], null, 'relaxation') as unknown as Record<string, unknown>,
+        metadata: makeMeta(null, null, k, null, false, [], null, 'relaxation', k) as unknown as Record<string, unknown>,
       });
     }
 
@@ -207,15 +217,15 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
 
         const { vertexStates, edgeStates } = buildStates(i, j, k, []);
         const oldDisplay = improved
-          ? `replaced`
-          : `kept (current: ${displayVal(V[i][j], mode)})`;
+          ? `remplacé`
+          : `conservé (actuel : ${displayVal(V[i][j])})`;
         steps.push({
           stepIndex: idx++,
           description: improved
-            ? `W[${labels[i]}][${labels[j]}] = ${V[i][k]} + ${V[k][j]} = ${wij} → improved (${oldDisplay}).`
-            : `W[${labels[i]}][${labels[j]}] = ${wij} — no improvement (${oldDisplay}).`,
+            ? `W[${labels[i]}][${labels[j]}] = ${V[i][k]} + ${V[k][j]} = ${wij} → amélioré (${oldDisplay}).`
+            : `W[${labels[i]}][${labels[j]}] = ${wij} — aucune amélioration (${oldDisplay}).`,
           vertexStates, edgeStates,
-          metadata: makeMeta(i, j, k, wij, improved, [], null, 'relaxation') as unknown as Record<string, unknown>,
+          metadata: makeMeta(i, j, k, wij, improved, [], null, 'relaxation', k + 1) as unknown as Record<string, unknown>,
         });
       }
     }
@@ -224,14 +234,14 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
       const { vertexStates, edgeStates } = buildStates(null, null, null, []);
       steps.push({
         stepIndex: idx++,
-        description: `Matrix D${k + 1} complete after allowing "${kLabel}".`,
+        description: `Matrice D${k + 1} complète après avoir permis « ${kLabel} » comme intermédiaire.`,
         vertexStates, edgeStates,
-        metadata: makeMeta(null, null, null, null, false, [], null, 'relaxation') as unknown as Record<string, unknown>,
+        metadata: makeMeta(null, null, null, null, false, [], null, 'relaxation', k + 1) as unknown as Record<string, unknown>,
       });
     }
   }
 
-  // ── Path reconstruction ───────────────────────────────────────────────────
+  // ── Reconstruction du chemin ───────────────────────────────────────────────
   let optimalPath: string[] = [];
   let optimalValue: number | null = null;
   let pathIdx: number[] = [];
@@ -243,9 +253,9 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
       const { vertexStates, edgeStates } = buildStates(null, null, null, []);
       steps.push({
         stepIndex: idx++,
-        description: `Reconstruction: no ${mode} path exists from "${labels[srcIdx]}" to "${labels[tgtIdx]}".`,
+        description: `Reconstruction : aucun chemin ${mode === 'min' ? 'le plus court' : 'le plus long'} de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} ».`,
         vertexStates, edgeStates,
-        metadata: makeMeta(srcIdx, tgtIdx, null, null, false, [], null, 'reconstruction') as unknown as Record<string, unknown>,
+        metadata: makeMeta(srcIdx, tgtIdx, null, null, false, [], null, 'reconstruction', n) as unknown as Record<string, unknown>,
       });
     } else {
       const raw = reconstructPath(prev, V, EMPTY, srcIdx, tgtIdx);
@@ -255,28 +265,28 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
         const { vertexStates, edgeStates } = buildStates(null, null, null, pathIdx);
         steps.push({
           stepIndex: idx++,
-          description: `Reconstruction: ${mode === 'min' ? 'shortest' : 'longest'} path "${labels[srcIdx]}" → "${labels[tgtIdx]}": ${optimalPath.join(' → ')} (total: ${optimalValue}).`,
+          description: `Reconstruction : chemin ${mode === 'min' ? 'le plus court' : 'le plus long'} de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} » : ${optimalPath.join(' → ')} (total : ${optimalValue}).`,
           vertexStates, edgeStates,
-          metadata: makeMeta(srcIdx, tgtIdx, null, null, false, optimalPath, optimalValue, 'reconstruction') as unknown as Record<string, unknown>,
+          metadata: makeMeta(srcIdx, tgtIdx, null, null, false, optimalPath, optimalValue, 'reconstruction', n) as unknown as Record<string, unknown>,
         });
       }
     }
   }
 
-  // ── Final step ────────────────────────────────────────────────────────────
+  // ── Étape finale ──────────────────────────────────────────────────────────
   {
     const { vertexStates, edgeStates } = buildStates(null, null, null, pathIdx);
     const desc = srcIdx !== null && tgtIdx !== null
       ? optimalPath.length
-        ? `Done. ${mode === 'min' ? 'Shortest' : 'Longest'} path: ${optimalPath.join(' → ')} = ${optimalValue}.`
-        : `Done. No path from "${labels[srcIdx ?? 0]}" to "${labels[tgtIdx ?? 0]}".`
-      : `Done. Optimal path matrix computed for all vertex pairs.`;
+        ? `Terminé. Chemin ${mode === 'min' ? 'le plus court' : 'le plus long'} : ${optimalPath.join(' → ')} = ${optimalValue}.`
+        : `Terminé. Aucun chemin de « ${labels[srcIdx ?? 0]} » à « ${labels[tgtIdx ?? 0]} ».`
+      : `Terminé. Matrice des chemins optimaux calculée pour toutes les paires.`;
 
     steps.push({
       stepIndex: idx++,
       description: desc,
       vertexStates, edgeStates,
-      metadata: makeMeta(srcIdx, tgtIdx, null, null, false, optimalPath, optimalValue, 'done') as unknown as Record<string, unknown>,
+      metadata: makeMeta(srcIdx, tgtIdx, null, null, false, optimalPath, optimalValue, 'done', n) as unknown as Record<string, unknown>,
     });
   }
 
@@ -285,39 +295,39 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
 
 export const demoucronChoDef: AlgorithmDef = {
   id: 'demoucron-cho',
-  name: 'Demoucron — Optimal Path',
+  name: 'Demoucron — Chemin Optimal',
   description:
-    'Matrix relaxation method (Floyd-Warshall style) computing optimal paths ' +
-    'between all vertex pairs in a directed weighted graph. ' +
-    'At each step k, vertex xₖ becomes an allowed intermediate: ' +
+    'Méthode de relaxation matricielle (style Floyd-Warshall) calculant les chemins optimaux ' +
+    'entre toutes les paires de sommets d\'un graphe orienté pondéré. ' +
+    'À chaque passe k, le sommet xₖ devient un intermédiaire autorisé : ' +
     'V[i][j] = min/max(V[i][j], V[i][k] + V[k][j]).',
   requiresWeights:  true,
   requiresDirected: true,
   inputs: [
     {
       key:      'mode',
-      label:    'Maximize path (longest)',
+      label:    'Maximiser le chemin (le plus long)',
       type:     'boolean',
       required: true,
       default:  false,
     },
     {
       key:      'source',
-      label:    'Source vertex (optional)',
+      label:    'Sommet source (optionnel)',
       type:     'vertex-select',
       required: false,
     },
     {
       key:      'target',
-      label:    'Target vertex (optional)',
+      label:    'Sommet cible (optionnel)',
       type:     'vertex-select',
       required: false,
     },
   ],
   presets: [
     {
-      name: 'Transport Network (6 nodes)',
-      description: 'Classic directed weighted graph for shortest-path demonstration.',
+      name: 'Réseau de transport (6 nœuds)',
+      description: 'Graphe orienté pondéré classique pour la démonstration du chemin le plus court.',
       graph: {
         directed: true, weighted: true,
         vertices: [
@@ -342,8 +352,8 @@ export const demoucronChoDef: AlgorithmDef = {
       defaultParams: { mode: false, source: 'cv1', target: 'cv6' },
     },
     {
-      name: 'Longest Path (5 nodes)',
-      description: 'MAX variant: find the path with the highest total weight.',
+      name: 'Chemin le plus long (5 nœuds)',
+      description: 'Variante MAX : trouver le chemin avec le poids total le plus élevé.',
       graph: {
         directed: true, weighted: true,
         vertices: [
@@ -366,9 +376,9 @@ export const demoucronChoDef: AlgorithmDef = {
     },
   ],
   validate(graph) {
-    if (graph.vertices.length < 2) return 'Graph needs at least 2 vertices.';
-    if (!graph.weighted)           return 'Demoucron Optimal Path requires a weighted graph.';
-    if (!graph.directed)           return 'Demoucron Optimal Path requires a directed graph.';
+    if (graph.vertices.length < 2) return 'Le graphe doit avoir au moins 2 sommets.';
+    if (!graph.weighted)           return 'Demoucron Chemin Optimal nécessite un graphe pondéré.';
+    if (!graph.directed)           return 'Demoucron Chemin Optimal nécessite un graphe orienté.';
     return null;
   },
   run: runDemoucronCho,

@@ -1,69 +1,69 @@
-<div class="app-layout" [class.light-theme]="!darkMode()">
+<div class="gv-app" [class.dark-theme]="darkMode()">
 
   <app-toolbar
     [darkMode]="darkMode()"
+    [mode]="mode()"
     (darkModeChange)="onDarkModeChange($event)"
+    (modeChange)="mode.set($event)"
+    (loadPreset)="openPresetDialog()"
   />
 
-  <div class="content-row">
+  <div class="gv-workspace">
 
-    <div class="left-col">
+    <!-- Left rail: algorithm configuration (always visible) -->
+    <app-algorithm-panel (modeChange)="mode.set($event)" [mode]="mode()" />
 
-      <!-- Always-visible algorithm selector bar -->
-      <div class="algo-bar">
-        <mat-form-field appearance="outline" class="algo-select-field" subscriptSizing="dynamic">
-          <mat-label>Algorithm</mat-label>
-          <mat-select
-            [value]="runner.selectedAlgorithm()?.id ?? null"
-            (selectionChange)="runner.selectAlgorithm($event.value)">
-            @for (alg of runner.algorithms; track alg.id) {
-              <mat-option [value]="alg.id">{{ alg.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <button mat-icon-button
-          (click)="algPanelOpen.update(v => !v)"
-          [matTooltip]="algPanelOpen() ? 'Collapse panel' : 'Expand panel'">
-          <mat-icon>{{ algPanelOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
-        </button>
+    <!-- Stage: canvas / matrix + playback -->
+    <main class="gv-stage">
+      <div class="gv-stage-tabs">
+        <div class="gv-tabs">
+          <button [class.on]="activeTab() === 'canvas'" (click)="activeTab.set('canvas')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="8" r="2.4"/>
+              <path d="M6 8.4v7.2M8.2 7A6 6 0 0 1 16 9"/>
+            </svg>
+            <span>Canevas</span>
+          </button>
+          <button [class.on]="activeTab() === 'matrix'" (click)="activeTab.set('matrix')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
+              <line x1="4" y1="10" x2="20" y2="10"/>
+              <line x1="10" y1="4" x2="10" y2="20"/>
+            </svg>
+            <span>Matrice</span>
+          </button>
+        </div>
+
+        @if (mode() === 'edit') {
+          <div class="gv-stage-hint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12" y2="8.5"/>
+            </svg>
+            <span>Cliquez pour ajouter un sommet · glissez la poignée <strong>+</strong> pour relier · double-clic pour renommer</span>
+          </div>
+        } @else if (runner.hasRun()) {
+          <div class="gv-live-badge">
+            <span class="gv-live-dot"></span>
+            Visualisation en cours
+          </div>
+        }
       </div>
 
-      <!-- Collapsible algorithm config panel -->
-      <div class="algo-strip" [class.collapsed]="!algPanelOpen()">
-        <app-algorithm-panel (modeChange)="mode.set($event)" />
+      <div class="gv-stage-canvas">
+        @if (activeTab() === 'canvas') {
+          <app-canvas [mode]="mode()" [darkMode]="darkMode()" />
+        } @else {
+          <app-matrix-editor />
+        }
       </div>
-
-      <!-- Tab group: Canvas | Matrix -->
-      <mat-tab-group class="center-tabs" animationDuration="0ms">
-        <mat-tab label="Canvas">
-          <div class="tab-content">
-            <app-canvas
-              [mode]="mode()"
-              [darkMode]="darkMode()"
-              [outputPanelOpen]="outputPanelOpen()"
-              (modeChange)="mode.set($event)"
-              (toggleOutputPanel)="outputPanelOpen.update(v => !v)"
-              (loadPreset)="openPresetDialog()"
-            />
-          </div>
-        </mat-tab>
-        <mat-tab label="Matrix">
-          <div class="tab-content">
-            <app-matrix-editor />
-          </div>
-        </mat-tab>
-      </mat-tab-group>
 
       @if (runner.hasRun()) {
         <app-playback-bar />
       }
+    </main>
 
-    </div>
-
-    <!-- Output panel — collapsible right panel -->
-    <div class="output-side" [class.collapsed]="!outputPanelOpen()">
-      <app-output-panel />
-    </div>
+    <!-- Right: output / explainer panel (always visible) -->
+    <app-output-panel />
 
   </div>
 

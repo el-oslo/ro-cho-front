@@ -64,7 +64,7 @@ export function runBellmanFord(graph: Graph, params: Record<string, unknown>): A
     };
   };
 
-  steps.push(makeStep(`Initialise Bellman-Ford from ${graph.vertices.find(v => v.id === source)?.label}`, 0));
+  steps.push(makeStep(`Initialisation Bellman-Ford depuis ${graph.vertices.find(v => v.id === source)?.label}`, 0));
 
   const allEdges = graph.directed
     ? graph.edges
@@ -90,14 +90,14 @@ export function runBellmanFord(graph: Graph, params: Record<string, unknown>): A
           (!graph.directed && e.source === v && e.target === u)
         )?.id;
         steps.push(makeStep(
-          `Pass ${pass}: relax ${uLabel}→${vLabel}, dist[${vLabel}] = ${newDist}`,
+          `Passe ${pass} : relâcher ${uLabel}→${vLabel}, dist[${vLabel}] = ${newDist}`,
           pass, realEdgeId,
           target ? buildPath(previous, target) : []
         ));
       }
     }
     if (!relaxed) {
-      steps.push(makeStep(`Pass ${pass}: no relaxations — early exit`, pass));
+      steps.push(makeStep(`Passe ${pass} : aucune relaxation — arrêt anticipé`, pass));
       break;
     }
   }
@@ -115,10 +115,10 @@ export function runBellmanFord(graph: Graph, params: Record<string, unknown>): A
   const finalDist = target ? distances[target] : null;
   steps.push(makeStep(
     negCycleDetected
-      ? '⚠ Negative cycle detected!'
+      ? '⚠ Cycle négatif détecté !'
       : target
-        ? `Done. Shortest distance to ${graph.vertices.find(v => v.id === target)?.label}: ${finalDist === inf ? 'unreachable' : finalDist}`
-        : 'Done. All shortest distances computed.',
+        ? `Terminé. Plus courte distance vers ${graph.vertices.find(v => v.id === target)?.label} : ${finalDist === inf ? 'inaccessible' : finalDist}`
+        : 'Terminé. Toutes les distances calculées.',
     n,
     undefined,
     finalPath
@@ -138,18 +138,18 @@ export function runBellmanFord(graph: Graph, params: Record<string, unknown>): A
 
 export const bellmanFordDef: AlgorithmDef = {
   id: 'bellman-ford',
-  name: 'Bellman-Ford Algorithm',
-  description: 'Computes shortest paths from a source, supporting negative edge weights and detecting negative cycles.',
+  name: 'Algorithme de Bellman-Ford',
+  description: 'Calcule les plus courts chemins depuis une source, supporte les poids négatifs et détecte les cycles négatifs.',
   requiresWeights: true,
   requiresDirected: null,
   inputs: [
-    { key: 'source', label: 'Source vertex', type: 'vertex-select', required: true },
-    { key: 'target', label: 'Target vertex (optional)', type: 'vertex-select', required: false },
+    { key: 'source', label: 'Sommet source', type: 'vertex-select', required: true },
+    { key: 'target', label: 'Sommet cible (optionnel)', type: 'vertex-select', required: false },
   ],
   presets: [
     {
-      name: 'Negative Edge Graph (5 nodes)',
-      description: '5-node graph with one negative-weight edge — Dijkstra would fail here.',
+      name: 'Graphe à arête négative (5 nœuds)',
+      description: 'Graphe à 5 nœuds avec une arête de poids négatif — Dijkstra échouerait ici.',
       graph: {
         directed: true, weighted: true,
         vertices: [
@@ -172,8 +172,8 @@ export const bellmanFordDef: AlgorithmDef = {
       defaultParams: { source: 'p1' },
     },
     {
-      name: 'Negative Cycle (6 nodes)',
-      description: '6-node directed graph containing a negative-weight cycle.',
+      name: 'Cycle négatif (6 nœuds)',
+      description: 'Graphe orienté à 6 nœuds contenant un cycle de poids négatif.',
       graph: {
         directed: true, weighted: true,
         vertices: [
@@ -197,7 +197,7 @@ export const bellmanFordDef: AlgorithmDef = {
     },
   ],
   validate(graph) {
-    if (!graph.weighted) return 'Bellman-Ford requires a weighted graph.';
+    if (!graph.weighted) return 'Bellman-Ford nécessite un graphe pondéré.';
     return null;
   },
   run: runBellmanFord,
