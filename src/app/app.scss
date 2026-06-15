@@ -15,6 +15,55 @@
   min-height: calc(100vh - var(--topbar-h));
   display: grid;
   grid-template-columns: var(--rail-w) 1fr var(--explainer-w);
+  transition: grid-template-columns .22s ease;
+
+  &.output-collapsed {
+    grid-template-columns: var(--rail-w) 1fr 32px;
+  }
+}
+
+// ── Output rail wrapper ───────────────────────────────────────────────────────
+.gv-output-rail {
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0;
+
+  app-output-panel {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  &.collapsed app-output-panel {
+    display: none;
+  }
+}
+
+.gv-output-toggle-col {
+  width: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.gv-output-toggle-btn {
+  width: 24px;
+  height: 52px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-400);
+  transition: background .14s ease, color .14s ease;
+
+  &:hover {
+    background: var(--paper);
+    color: var(--ink-700);
+  }
 }
 
 // ── Stage (center column) ─────────────────────────────────────────────────────
@@ -120,8 +169,12 @@
 @media (max-width: 860px) {
   .gv-workspace {
     grid-template-columns: 240px 1fr;
+
+    &.output-collapsed {
+      grid-template-columns: 240px 1fr;
+    }
   }
-  app-output-panel {
+  .gv-output-rail {
     display: none;
   }
 }

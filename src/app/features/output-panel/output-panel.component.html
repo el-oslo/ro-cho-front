@@ -178,23 +178,25 @@
         </div>
 
         <!-- Journal des étapes -->
-        <div class="step-log">
-          <div class="gv-sub-label">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/>
-              <circle cx="4.5" cy="6" r=".6"/><circle cx="4.5" cy="12" r=".6"/><circle cx="4.5" cy="18" r=".6"/>
-            </svg>
-            <span>Journal des étapes</span>
+        @if (false) {
+          <div class="step-log">
+            <div class="gv-sub-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/>
+                <circle cx="4.5" cy="6" r=".6"/><circle cx="4.5" cy="12" r=".6"/><circle cx="4.5" cy="18" r=".6"/>
+              </svg>
+              <span>Journal des étapes</span>
+            </div>
+            <div class="log-scroll" #stepList>
+              @for (s of steps(); track s.stepIndex) {
+                <div class="log-item" [class.step-active]="s.stepIndex === stepIndex()">
+                  <span class="log-idx">{{ s.stepIndex + 1 }}</span>
+                  <span class="log-desc">{{ s.description }}</span>
+                </div>
+              }
+            </div>
           </div>
-          <div class="log-scroll" #stepList>
-            @for (s of steps(); track s.stepIndex) {
-              <div class="log-item" [class.step-active]="s.stepIndex === stepIndex()">
-                <span class="log-idx">{{ s.stepIndex + 1 }}</span>
-                <span class="log-desc">{{ s.description }}</span>
-              </div>
-            }
-          </div>
-        </div>
+        }
 
         <!-- Résultat final -->
         @if (isLast() && finalPath().length > 0) {

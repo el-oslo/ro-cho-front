@@ -35,6 +35,7 @@ export class App implements OnInit {
   readonly mode = signal<'edit' | 'visualise'>('edit');
   readonly darkMode = signal<boolean>(false);
   readonly activeTab = signal<'canvas' | 'matrix'>('canvas');
+  readonly outputCollapsed = signal<boolean>(false);
 
   ngOnInit() {
     const stored = localStorage.getItem('darkMode');
