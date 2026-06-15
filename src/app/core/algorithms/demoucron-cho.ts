@@ -205,6 +205,7 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
+        if (i === k || j === k) continue;
         if (V[i][k] === EMPTY || V[k][j] === EMPTY) continue;
 
         const wij = V[i][k] + V[k][j];
