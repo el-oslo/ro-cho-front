@@ -47,8 +47,8 @@ export class CanvasInteractionService {
 
   // ── Mouse down — record intent only, never commit immediately ──────────────
   handleMouseDown(e: MouseEvent, svgEl: SVGSVGElement, mode: string) {
-    if (mode !== 'edit') return;
-
+    // if (mode !== 'edit') return;
+    
     this.mouseDownPos = { x: e.clientX, y: e.clientY };
     this.movedSignificantly = false;
     this.pendingDragVertex = null;
@@ -57,11 +57,11 @@ export class CanvasInteractionService {
     // Middle mouse → pan immediately (no click ambiguity)
     if (e.button === 1) { this.panning = true; return; }
     if (e.button !== 0) return;
-
+    
     const { x, y } = this.renderService.screenToWorld(svgEl, e.clientX, e.clientY);
     const hitVertex = this.renderService.hitTestVertex(this.graphService.graph(), x, y);
-
-    if (hitVertex) {
+    
+    if (hitVertex && mode == 'edit') {
       if (e.shiftKey) {
         // Shift + press on vertex → start edge drag immediately (visual feedback from first pixel)
         this.edgeDragSrc = hitVertex;
@@ -85,14 +85,14 @@ export class CanvasInteractionService {
       this.renderService.panY.update(p => p + e.movementY);
       return;
     }
-
     const dist = Math.hypot(e.clientX - this.mouseDownPos.x, e.clientY - this.mouseDownPos.y);
     if (dist > DRAG_THRESHOLD) this.movedSignificantly = true;
-
+    
     // Commit pending pan once threshold is crossed
     if (this.pendingPan && dist > DRAG_THRESHOLD) {
       this.panning = true;
       this.pendingPan = false;
+      console.log("MOVED", dist)  
     }
 
     // Commit pending vertex drag once threshold is crossed
