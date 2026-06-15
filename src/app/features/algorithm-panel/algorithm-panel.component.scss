@@ -6,7 +6,6 @@
 
 .gv-rail {
   background: var(--surface);
-  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   padding: var(--pad);
@@ -205,7 +204,7 @@
   font-size: 10.5px;
   font-weight: 600;
   padding: 3px 8px;
-  border-radius: 20px;
+  border-radius: 3px;
   border: 1px solid;
   letter-spacing: .01em;
 }
@@ -358,12 +357,10 @@
   color: #fff;
   font-size: 13.5px;
   font-weight: 600;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-base) 30%, transparent);
-  transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
+  transition: transform .12s ease, background .15s ease;
 
   &:hover:not(:disabled) {
     background: var(--accent-deep);
-    box-shadow: 0 6px 18px color-mix(in srgb, var(--accent-base) 38%, transparent);
   }
 
   &:active:not(:disabled) { transform: scale(.98); }

@@ -16,10 +16,35 @@
   display: grid;
   grid-template-columns: var(--rail-w) 1fr var(--explainer-w);
   transition: grid-template-columns .22s ease;
+}
 
-  &.output-collapsed {
-    grid-template-columns: var(--rail-w) 1fr 32px;
+// ── Algorithm rail wrapper (collapsible left panel) ───────────────────────────
+.gv-algo-rail {
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+
+  app-algorithm-panel {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
   }
+
+  &.collapsed app-algorithm-panel {
+    display: none;
+  }
+}
+
+.gv-algo-toggle-col {
+  width: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
 }
 
 // ── Output rail wrapper ───────────────────────────────────────────────────────
@@ -64,6 +89,17 @@
     background: var(--paper);
     color: var(--ink-700);
   }
+}
+
+.gv-resize-handle {
+  width: 5px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: transparent;
+  transition: background .14s ease;
+
+  &:hover { background: var(--accent-base); opacity: .35; }
+  &.hidden { display: none; }
 }
 
 // ── Stage (center column) ─────────────────────────────────────────────────────
@@ -168,11 +204,7 @@
 
 @media (max-width: 860px) {
   .gv-workspace {
-    grid-template-columns: 240px 1fr;
-
-    &.output-collapsed {
-      grid-template-columns: 240px 1fr;
-    }
+    grid-template-columns: 240px 1fr !important;
   }
   .gv-output-rail {
     display: none;

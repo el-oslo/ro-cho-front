@@ -40,7 +40,6 @@
     border-radius: 50%;
     background: var(--accent-base);
     color: #fff;
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-base) 32%, transparent);
 
     &:hover {
       background: var(--accent-deep);

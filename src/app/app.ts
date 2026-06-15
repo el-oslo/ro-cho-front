@@ -1,5 +1,5 @@
 import {
-  Component, inject, signal, HostListener, OnInit
+  Component, inject, signal, computed, HostListener, OnInit
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -36,6 +36,18 @@ export class App implements OnInit {
   readonly darkMode = signal<boolean>(false);
   readonly activeTab = signal<'canvas' | 'matrix'>('canvas');
   readonly outputCollapsed = signal<boolean>(false);
+  readonly algorithmCollapsed = signal<boolean>(false);
+  readonly outputWidth = signal<number>(340);
+
+  readonly workspaceColumns = computed(() => {
+    const algoW = this.algorithmCollapsed() ? '32px' : '288px';
+    const outputW = this.outputCollapsed() ? '32px' : `${this.outputWidth()}px`;
+    return `${algoW} 1fr ${outputW}`;
+  });
+
+  private resizing = false;
+  private resizeStartX = 0;
+  private resizeStartW = 0;
 
   ngOnInit() {
     const stored = localStorage.getItem('darkMode');
@@ -57,6 +69,23 @@ export class App implements OnInit {
       }
     }
   }
+
+  startOutputResize(e: MouseEvent) {
+    this.resizing = true;
+    this.resizeStartX = e.clientX;
+    this.resizeStartW = this.outputWidth();
+    e.preventDefault();
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onMouseMove(e: MouseEvent) {
+    if (!this.resizing) return;
+    const delta = this.resizeStartX - e.clientX;
+    this.outputWidth.set(Math.max(240, Math.min(700, this.resizeStartW + delta)));
+  }
+
+  @HostListener('document:mouseup')
+  onMouseUp() { this.resizing = false; }
 
   private togglePlay() {
     if (this.runner.isPlaying()) this.runner.pause();

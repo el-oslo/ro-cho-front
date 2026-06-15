@@ -3,19 +3,35 @@ import { Graph, Vertex, Edge } from '../../core/models/graph.models';
 import { AlgorithmStep, VertexState, EdgeState } from '../../core/models/algorithm.models';
 
 export const STATE_COLORS: Record<VertexState, string> = {
-  unvisited: '#9E9E9E',
-  frontier: '#1565C0',
-  active: '#F57F17',
-  visited: '#2E7D32',
-  path: '#AD1457',
-  rejected: '#4A148C',
+  unvisited: '#c5c8cc',
+  frontier:  '#4b7fa6',
+  active:    '#c47a2e',
+  visited:   '#147a74',
+  path:      '#8b3a3a',
+  rejected:  '#6b7075',
+};
+
+const STATE_COLORS_LIGHT: Record<VertexState, string> = {
+  unvisited: '#545b65',
+  frontier:  '#1a5590',
+  active:    '#8c5218',
+  visited:   '#0a4e4a',
+  path:      '#621f1f',
+  rejected:  '#374048',
 };
 
 export const EDGE_COLORS: Record<EdgeState, string> = {
-  default: '#BDBDBD',
-  traversed: '#1E88E5',
-  path: '#E91E63',
-  rejected: '#7B1FA2',
+  default:   '#c8cdd4',
+  traversed: '#4b7fa6',
+  path:      '#8b3a3a',
+  rejected:  '#9ba3ad',
+};
+
+const EDGE_COLORS_LIGHT: Record<EdgeState, string> = {
+  default:   '#6b7480',
+  traversed: '#1a5590',
+  path:      '#621f1f',
+  rejected:  '#4e5760',
 };
 
 const VERTEX_RADIUS = 22;
@@ -31,7 +47,7 @@ export class CanvasRenderService {
   private animFrame: number | null = null;
   private currentStates: { vertexStates: Record<string, VertexState>; edgeStates: Record<string, EdgeState> } | null = null;
 
-  get bg() { return this.darkMode() ? '#1a1a2e' : '#f0f0f5'; }
+  get bg() { return this.darkMode() ? '#111418' : '#f8f9fb'; }
   get vertexRadius() { return VERTEX_RADIUS; }
 
   // Live ghost line while dragging to create an edge
@@ -107,7 +123,8 @@ export class CanvasRenderService {
   private makeDefs(svg: SVGSVGElement): SVGDefsElement {
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     // One marker per edge state — compact triangle matching the redesign
-    for (const [state, color] of Object.entries(EDGE_COLORS)) {
+    const edgeColors = this.darkMode() ? EDGE_COLORS : EDGE_COLORS_LIGHT;
+    for (const [state, color] of Object.entries(edgeColors)) {
       const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
       marker.setAttribute('id', `edge-arrow-${state}`);
       marker.setAttribute('viewBox', '0 0 10 10');
@@ -151,7 +168,7 @@ export class CanvasRenderService {
 
   private drawEdge(edge: Edge, src: Vertex, tgt: Vertex, state: EdgeState, directed: boolean): SVGGElement {
     const grp = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    const color = EDGE_COLORS[state];
+    const color = (this.darkMode() ? EDGE_COLORS : EDGE_COLORS_LIGHT)[state];
     const isSelfLoop = edge.source === edge.target;
 
     if (isSelfLoop) {
@@ -219,7 +236,7 @@ export class CanvasRenderService {
     grp.setAttribute('transform', `translate(${vertex.x}, ${vertex.y})`);
     grp.setAttribute('cursor', 'pointer');
 
-    const fill = STATE_COLORS[state];
+    const fill = (this.darkMode() ? STATE_COLORS : STATE_COLORS_LIGHT)[state];
 
     if (selected) {
       const sel = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -258,7 +275,7 @@ export class CanvasRenderService {
     t.setAttribute('text-anchor', 'middle');
     t.setAttribute('dominant-baseline', 'central');
     t.setAttribute('fill', fill);
-    t.setAttribute('font-size', '12');
+    t.setAttribute('font-size', '16');
     t.setAttribute('font-weight', '500');
     t.textContent = txt;
     return t;
