@@ -244,9 +244,22 @@
   thead .cho-col-k { background: var(--accent-base); color: #fff; }
   .cho-cell-active { background: color-mix(in srgb, var(--accent-soft) 40%, transparent); }
   .cho-cell-improved { background: #d8f0e2; font-weight: 700; }
+  .cho-cell-tied { background: #fef3c7; font-weight: 700; }
 }
 
 .cho-result { display: flex; flex-direction: column; gap: 6px; }
+
+.cho-multi-label { color: var(--accent-base); margin-bottom: 4px; }
+
+.cho-path-index {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-400);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-top: 6px;
+  &:first-of-type { margin-top: 0; }
+}
 
 // ── Step journal ──────────────────────────────────────────────────────────────
 .step-log { display: flex; flex-direction: column; gap: 0; flex-shrink: 1; }

@@ -82,7 +82,9 @@ export class OutputPanelComponent {
   readonly choCurrentJ = computed(() => this.choMeta()?.['currentJ'] as number | null ?? null);
   readonly choWValue = computed(() => this.choMeta()?.['wValue'] as number | null ?? null);
   readonly choImproved = computed(() => !!(this.choMeta()?.['improved']));
+  readonly choTied = computed(() => !!(this.choMeta()?.['tied']));
   readonly choOptimalPath = computed(() => (this.choMeta()?.['optimalPath'] as string[]) ?? []);
+  readonly choOptimalPaths = computed(() => (this.choMeta()?.['optimalPaths'] as string[][]) ?? []);
   readonly choOptimalValue = computed(() => this.choMeta()?.['optimalValue'] as number | null ?? null);
   readonly choMatrixIndex = computed(() => (this.choMeta()?.['matrixIndex'] as number) ?? 0);
 
@@ -95,7 +97,9 @@ export class OutputPanelComponent {
     const ci = this.choCurrentI(), cj = this.choCurrentJ();
     const k = this.choLabels().indexOf(this.choIntermediate() ?? '');
     if (ci !== null && cj !== null && rowIdx === ci && colIdx === cj) {
-      return this.choImproved() ? 'cho-cell-improved' : 'cho-cell-active';
+      if (this.choImproved()) return 'cho-cell-improved';
+      if (this.choTied())     return 'cho-cell-tied';
+      return 'cho-cell-active';
     }
     if (k !== -1 && (colIdx === k || rowIdx === k)) return 'cho-cell-k';
     return '';

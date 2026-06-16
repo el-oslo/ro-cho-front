@@ -228,16 +228,29 @@
           </div>
         }
 
-        @if (algId() === 'demoucron-cho' && choOptimalPath().length > 0) {
+        @if (algId() === 'demoucron-cho' && choOptimalPaths().length > 0) {
           <div class="result-card">
-            <div class="path-chips">
-              @for (lbl of choOptimalPath(); track $index) {
-                <span class="path-node">{{ lbl }}</span>
-                @if ($index < choOptimalPath().length - 1) {
-                  <span class="path-arrow">›</span>
-                }
+            @if (choOptimalPaths().length > 1) {
+              <div class="gv-sub-label cho-multi-label">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+                </svg>
+                <span>{{ choOptimalPaths().length }} chemins optimaux équivalents</span>
+              </div>
+            }
+            @for (path of choOptimalPaths(); track $index) {
+              @if (choOptimalPaths().length > 1) {
+                <div class="cho-path-index">Chemin {{ $index + 1 }}</div>
               }
-            </div>
+              <div class="path-chips">
+                @for (lbl of path; track $index) {
+                  <span class="path-node">{{ lbl }}</span>
+                  @if ($index < path.length - 1) {
+                    <span class="path-arrow">›</span>
+                  }
+                }
+              </div>
+            }
             @if (choOptimalValue() !== null) {
               <div class="result-metric">
                 <span>{{ choMode() === 'min' ? 'Coût minimum' : 'Coût maximum' }}</span>
