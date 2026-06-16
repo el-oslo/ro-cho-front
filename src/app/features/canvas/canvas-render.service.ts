@@ -8,6 +8,7 @@ export const STATE_COLORS: Record<VertexState, string> = {
   active:    '#c47a2e',
   visited:   '#147a74',
   path:      '#8b3a3a',
+  path2:     '#3a7a5c',
   rejected:  '#6b7075',
 };
 
@@ -17,6 +18,7 @@ const STATE_COLORS_LIGHT: Record<VertexState, string> = {
   active:    '#8c5218',
   visited:   '#0a4e4a',
   path:      '#621f1f',
+  path2:     '#1f5c3e',
   rejected:  '#374048',
 };
 
@@ -24,6 +26,7 @@ export const EDGE_COLORS: Record<EdgeState, string> = {
   default:   '#c8cdd4',
   traversed: '#4b7fa6',
   path:      '#8b3a3a',
+  path2:     '#3a7a5c',
   rejected:  '#9ba3ad',
 };
 
@@ -31,6 +34,7 @@ const EDGE_COLORS_LIGHT: Record<EdgeState, string> = {
   default:   '#6b7480',
   traversed: '#1a5590',
   path:      '#621f1f',
+  path2:     '#1f5c3e',
   rejected:  '#4e5760',
 };
 
@@ -205,7 +209,7 @@ export class CanvasRenderService {
     path.setAttribute('d', d);
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', color);
-    path.setAttribute('stroke-width', state === 'path' ? '3' : '2');
+    path.setAttribute('stroke-width', (state === 'path' || state === 'path2') ? '3' : '2');
     if (directed) {
       path.setAttribute('marker-end', `url(#edge-arrow-${state})`);
     }
@@ -250,7 +254,7 @@ export class CanvasRenderService {
     circle.setAttribute('fill', fill);
     circle.setAttribute('stroke', pendingSource ? '#FFD600' : (selected ? '#fff' : 'rgba(0,0,0,0.3)'));
     circle.setAttribute('stroke-width', pendingSource ? '3' : (selected ? '2' : '1.5'));
-    if (state === 'path') {
+    if (state === 'path' || state === 'path2') {
       circle.setAttribute('class', 'pulse-path');
     }
     grp.appendChild(circle);

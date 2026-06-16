@@ -130,30 +130,42 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
     }
   }
 
+  // pathIdxList: first entry = path1 ('path' state/red), second = path2 ('path2' state/green)
   function buildStates(
     hI: number | null,
     hJ: number | null,
     hK: number | null,
-    pathIdx: number[]
+    pathIdxList: number[][]
   ): { vertexStates: Record<string, VertexState>; edgeStates: Record<string, EdgeState> } {
     const vertexStates: Record<string, VertexState> = {};
     const edgeStates:   Record<string, EdgeState>   = {};
 
-    const pathSet = new Set(pathIdx);
-    const pathEdges = new Set<string>();
-    for (let p = 0; p < pathIdx.length - 1; p++) {
-      const a = vertices[pathIdx[p]].id;
-      const b = vertices[pathIdx[p + 1]].id;
-      pathEdges.add(`${a}->${b}`);
-      if (!graph.directed) pathEdges.add(`${b}->${a}`);
+    const [path1 = [], path2 = []] = pathIdxList;
+
+    const pathSet1 = new Set(path1);
+    const pathSet2 = new Set(path2);
+
+    const pathEdges1 = new Set<string>();
+    for (let p = 0; p < path1.length - 1; p++) {
+      const a = vertices[path1[p]].id, b = vertices[path1[p + 1]].id;
+      pathEdges1.add(`${a}->${b}`);
+      if (!graph.directed) pathEdges1.add(`${b}->${a}`);
+    }
+
+    const pathEdges2 = new Set<string>();
+    for (let p = 0; p < path2.length - 1; p++) {
+      const a = vertices[path2[p]].id, b = vertices[path2[p + 1]].id;
+      pathEdges2.add(`${a}->${b}`);
+      if (!graph.directed) pathEdges2.add(`${b}->${a}`);
     }
 
     for (let i = 0; i < n; i++) {
       const id = vertices[i].id;
-      if (pathSet.size && pathSet.has(i)) vertexStates[id] = 'path';
-      else if (i === hK)                  vertexStates[id] = 'active';
-      else if (i === hI || i === hJ)      vertexStates[id] = 'frontier';
-      else                                vertexStates[id] = 'unvisited';
+      if (pathSet1.has(i))           vertexStates[id] = 'path';
+      else if (pathSet2.has(i))      vertexStates[id] = 'path2';
+      else if (i === hK)             vertexStates[id] = 'active';
+      else if (i === hI || i === hJ) vertexStates[id] = 'frontier';
+      else                           vertexStates[id] = 'unvisited';
     }
 
     const kId = hK !== null ? vertices[hK]?.id : null;
@@ -161,8 +173,11 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
     const jId = hJ !== null ? vertices[hJ]?.id : null;
 
     for (const edge of graph.edges) {
-      if (pathEdges.has(`${edge.source}->${edge.target}`)) {
+      const eKey = `${edge.source}->${edge.target}`;
+      if (pathEdges1.has(eKey)) {
         edgeStates[edge.id] = 'path';
+      } else if (pathEdges2.has(eKey)) {
+        edgeStates[edge.id] = 'path2';
       } else if (kId && iId && jId) {
         const isIK = edge.source === iId && edge.target === kId;
         const isKJ = edge.source === kId && edge.target === jId;
@@ -281,7 +296,7 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
   // ── Reconstruction du chemin ───────────────────────────────────────────────
   let optimalPaths: string[][] = [];
   let optimalValue: number | null = null;
-  let pathIdx: number[] = [];
+  let rawPaths: number[][] = [];   // all optimal paths as vertex-index arrays (up to 2)
 
   if (srcIdx !== null && tgtIdx !== null) {
     optimalValue = V[srcIdx][tgtIdx];
@@ -295,12 +310,11 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
         metadata: makeMeta(srcIdx, tgtIdx, null, null, false, false, [], null, 'reconstruction', n) as unknown as Record<string, unknown>,
       });
     } else {
-      const rawPaths = reconstructAllPaths(prevAll, V, EMPTY, srcIdx, tgtIdx);
+      rawPaths = reconstructAllPaths(prevAll, V, EMPTY, srcIdx, tgtIdx);
       if (rawPaths.length > 0) {
-        pathIdx      = rawPaths[0];
         optimalPaths = rawPaths.map(p => p.map(i => labels[i]));
         const pathsDesc = optimalPaths.map(p => p.join(' → ')).join(' ou ');
-        const { vertexStates, edgeStates } = buildStates(null, null, null, pathIdx);
+        const { vertexStates, edgeStates } = buildStates(null, null, null, rawPaths);
         const plural = rawPaths.length > 1
           ? `${rawPaths.length} chemins optimaux équivalents`
           : `chemin`;
@@ -316,7 +330,7 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
 
   // ── Étape finale ──────────────────────────────────────────────────────────
   {
-    const { vertexStates, edgeStates } = buildStates(null, null, null, pathIdx);
+    const { vertexStates, edgeStates } = buildStates(null, null, null, rawPaths);
     const desc = srcIdx !== null && tgtIdx !== null
       ? optimalPaths.length > 1
         ? `Terminé. ${optimalPaths.length} chemins ${mode === 'min' ? 'les plus courts' : 'les plus longs'} équivalents de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} » (coût : ${optimalValue}).`

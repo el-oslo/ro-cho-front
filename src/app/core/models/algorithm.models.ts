@@ -1,7 +1,7 @@
 import { Graph } from './graph.models';
 
-export type VertexState = 'unvisited' | 'frontier' | 'active' | 'visited' | 'path' | 'rejected';
-export type EdgeState = 'default' | 'traversed' | 'path' | 'rejected';
+export type VertexState = 'unvisited' | 'frontier' | 'active' | 'visited' | 'path' | 'path2' | 'rejected';
+export type EdgeState = 'default' | 'traversed' | 'path' | 'path2' | 'rejected';
 
 export interface AlgorithmStep {
   stepIndex: number;
