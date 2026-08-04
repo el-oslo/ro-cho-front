@@ -29,7 +29,9 @@ interface ChoMeta {
   optimalPaths:        string[][];
   optimalValue:        number | null;
   mode:                'min' | 'max';
-  phase:               'init' | 'relaxation' | 'reconstruction' | 'done';
+  phase:               'init' | 'relaxation' | 'cycle-warning' | 'reconstruction' | 'done';
+  cyclicVertices:      string[];   // labels of vertices on a problematic cycle
+  isUnbounded:         boolean;    // true when the src→tgt optimal is ±∞
 }
 
 function displayVal(v: number): string {
@@ -131,11 +133,13 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
   }
 
   // pathIdxList: first entry = path1 ('path' state/red), second = path2 ('path2' state/green)
+  // cyclicIdxs: vertex indices on a problematic cycle, shown with 'active' (orange) state
   function buildStates(
     hI: number | null,
     hJ: number | null,
     hK: number | null,
-    pathIdxList: number[][]
+    pathIdxList: number[][],
+    cyclicIdxs: Set<number> = new Set()
   ): { vertexStates: Record<string, VertexState>; edgeStates: Record<string, EdgeState> } {
     const vertexStates: Record<string, VertexState> = {};
     const edgeStates:   Record<string, EdgeState>   = {};
@@ -159,10 +163,13 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
       if (!graph.directed) pathEdges2.add(`${b}->${a}`);
     }
 
+    const cyclicIds = new Set([...cyclicIdxs].map(k => vertices[k].id));
+
     for (let i = 0; i < n; i++) {
       const id = vertices[i].id;
       if (pathSet1.has(i))           vertexStates[id] = 'path';
       else if (pathSet2.has(i))      vertexStates[id] = 'path2';
+      else if (cyclicIds.has(id))    vertexStates[id] = 'active';
       else if (i === hK)             vertexStates[id] = 'active';
       else if (i === hI || i === hJ) vertexStates[id] = 'frontier';
       else                           vertexStates[id] = 'unvisited';
@@ -178,6 +185,8 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
         edgeStates[edge.id] = 'path';
       } else if (pathEdges2.has(eKey)) {
         edgeStates[edge.id] = 'path2';
+      } else if (cyclicIds.has(edge.source) && cyclicIds.has(edge.target)) {
+        edgeStates[edge.id] = 'traversed';
       } else if (kId && iId && jId) {
         const isIK = edge.source === iId && edge.target === kId;
         const isKJ = edge.source === kId && edge.target === jId;
@@ -203,7 +212,9 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
     wValue: number | null, improved: boolean, tied: boolean,
     optimalPaths: string[][], optimalValue: number | null,
     phase: ChoMeta['phase'],
-    matrixIndex: number
+    matrixIndex: number,
+    cyclicVertices: string[] = [],
+    isUnbounded: boolean = false
   ): ChoMeta {
     return {
       matrixSnapshot: snapshot(clone(V)),
@@ -220,6 +231,8 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
       optimalValue,
       mode,
       phase,
+      cyclicVertices,
+      isUnbounded,
     };
   }
 
@@ -293,57 +306,108 @@ export function runDemoucronCho(graph: Graph, params: Record<string, unknown>): 
     }
   }
 
+  // ── Détection de cycles problématiques ───────────────────────────────────
+  // After all n passes, V[k][k] is still 0 (diagonal skipped). We detect cycles
+  // by checking whether any round-trip k→m→k has a better-than-zero total weight.
+  // In max mode this means a positive cycle (unbounded longest path).
+  // In min mode this means a negative cycle (unbounded shortest path).
+  const cyclicIdxs = new Set<number>();
+  for (let k = 0; k < n; k++) {
+    for (let m = 0; m < n; m++) {
+      if (m === k) continue;
+      if (V[k][m] === EMPTY || V[m][k] === EMPTY) continue;
+      if (betterThan(V[k][m] + V[m][k], 0)) {
+        cyclicIdxs.add(k);
+        cyclicIdxs.add(m);
+      }
+    }
+  }
+  const cyclicLabels = [...cyclicIdxs].map(i => labels[i]);
+
+  if (cyclicIdxs.size > 0) {
+    const { vertexStates, edgeStates } = buildStates(null, null, null, [], cyclicIdxs);
+    const cycleType = mode === 'max' ? 'positif' : 'négatif';
+    steps.push({
+      stepIndex: idx++,
+      description: `⚠ Cycle ${cycleType} détecté impliquant les sommets ${cyclicLabels.join(', ')}. Le chemin ${mode === 'max' ? 'le plus long' : 'le plus court'} passant par ce cycle est non borné (${mode === 'max' ? '+∞' : '-∞'}).`,
+      vertexStates, edgeStates,
+      metadata: makeMeta(null, null, null, null, false, false, [], null, 'cycle-warning', n, cyclicLabels, false) as unknown as Record<string, unknown>,
+    });
+  }
+
   // ── Reconstruction du chemin ───────────────────────────────────────────────
   let optimalPaths: string[][] = [];
   let optimalValue: number | null = null;
   let rawPaths: number[][] = [];   // all optimal paths as vertex-index arrays (up to 2)
+  let isUnbounded = false;
 
   if (srcIdx !== null && tgtIdx !== null) {
-    optimalValue = V[srcIdx][tgtIdx];
+    // A path is unbounded if a cyclic vertex lies between src and tgt
+    isUnbounded = cyclicIdxs.size > 0 && [...cyclicIdxs].some(
+      k => V[srcIdx][k] !== EMPTY && V[k][tgtIdx] !== EMPTY
+    );
 
-    if (optimalValue === EMPTY) {
-      const { vertexStates, edgeStates } = buildStates(null, null, null, []);
+    if (isUnbounded) {
+      const unboundedVal = mode === 'max' ? '+∞' : '-∞';
+      const { vertexStates, edgeStates } = buildStates(null, null, null, [], cyclicIdxs);
       steps.push({
         stepIndex: idx++,
-        description: `Reconstruction : aucun chemin ${mode === 'min' ? 'le plus court' : 'le plus long'} de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} ».`,
+        description: `Reconstruction impossible : le chemin de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} » est non borné (${unboundedVal}) car un cycle ${mode === 'max' ? 'positif' : 'négatif'} se trouve sur le trajet.`,
         vertexStates, edgeStates,
-        metadata: makeMeta(srcIdx, tgtIdx, null, null, false, false, [], null, 'reconstruction', n) as unknown as Record<string, unknown>,
+        metadata: makeMeta(srcIdx, tgtIdx, null, null, false, false, [], null, 'reconstruction', n, cyclicLabels, true) as unknown as Record<string, unknown>,
       });
     } else {
-      rawPaths = reconstructAllPaths(prevAll, V, EMPTY, srcIdx, tgtIdx);
-      if (rawPaths.length > 0) {
-        optimalPaths = rawPaths.map(p => p.map(i => labels[i]));
-        const pathsDesc = optimalPaths.map(p => p.join(' → ')).join(' ou ');
-        const { vertexStates, edgeStates } = buildStates(null, null, null, rawPaths);
-        const plural = rawPaths.length > 1
-          ? `${rawPaths.length} chemins optimaux équivalents`
-          : `chemin`;
+      optimalValue = V[srcIdx][tgtIdx];
+
+      if (optimalValue === EMPTY) {
+        const { vertexStates, edgeStates } = buildStates(null, null, null, []);
         steps.push({
           stepIndex: idx++,
-          description: `Reconstruction : ${plural} ${mode === 'min' ? 'le plus court' : 'le plus long'} de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} » : ${pathsDesc} (total : ${optimalValue}).`,
+          description: `Reconstruction : aucun chemin ${mode === 'min' ? 'le plus court' : 'le plus long'} de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} ».`,
           vertexStates, edgeStates,
-          metadata: makeMeta(srcIdx, tgtIdx, null, null, false, false, optimalPaths, optimalValue, 'reconstruction', n) as unknown as Record<string, unknown>,
+          metadata: makeMeta(srcIdx, tgtIdx, null, null, false, false, [], null, 'reconstruction', n) as unknown as Record<string, unknown>,
         });
+      } else {
+        rawPaths = reconstructAllPaths(prevAll, V, EMPTY, srcIdx, tgtIdx);
+        if (rawPaths.length > 0) {
+          optimalPaths = rawPaths.map(p => p.map(i => labels[i]));
+          const pathsDesc = optimalPaths.map(p => p.join(' → ')).join(' ou ');
+          const { vertexStates, edgeStates } = buildStates(null, null, null, rawPaths);
+          const plural = rawPaths.length > 1
+            ? `${rawPaths.length} chemins optimaux équivalents`
+            : `chemin`;
+          steps.push({
+            stepIndex: idx++,
+            description: `Reconstruction : ${plural} ${mode === 'min' ? 'le plus court' : 'le plus long'} de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} » : ${pathsDesc} (total : ${optimalValue}).`,
+            vertexStates, edgeStates,
+            metadata: makeMeta(srcIdx, tgtIdx, null, null, false, false, optimalPaths, optimalValue, 'reconstruction', n) as unknown as Record<string, unknown>,
+          });
+        }
       }
     }
   }
 
   // ── Étape finale ──────────────────────────────────────────────────────────
   {
-    const { vertexStates, edgeStates } = buildStates(null, null, null, rawPaths);
+    const { vertexStates, edgeStates } = buildStates(null, null, null, rawPaths, isUnbounded ? cyclicIdxs : new Set());
+    const unboundedVal = mode === 'max' ? '+∞' : '-∞';
     const desc = srcIdx !== null && tgtIdx !== null
-      ? optimalPaths.length > 1
-        ? `Terminé. ${optimalPaths.length} chemins ${mode === 'min' ? 'les plus courts' : 'les plus longs'} équivalents de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} » (coût : ${optimalValue}).`
-        : optimalPaths.length === 1
-          ? `Terminé. Chemin ${mode === 'min' ? 'le plus court' : 'le plus long'} : ${optimalPaths[0].join(' → ')} = ${optimalValue}.`
-          : `Terminé. Aucun chemin de « ${labels[srcIdx ?? 0]} » à « ${labels[tgtIdx ?? 0]} ».`
-      : `Terminé. Matrice des chemins optimaux calculée pour toutes les paires.`;
+      ? isUnbounded
+        ? `Terminé. Chemin non borné (${unboundedVal}) : un cycle ${mode === 'max' ? 'positif' : 'négatif'} se trouve entre « ${labels[srcIdx]} » et « ${labels[tgtIdx]} ».`
+        : optimalPaths.length > 1
+          ? `Terminé. ${optimalPaths.length} chemins ${mode === 'min' ? 'les plus courts' : 'les plus longs'} équivalents de « ${labels[srcIdx]} » à « ${labels[tgtIdx]} » (coût : ${optimalValue}).`
+          : optimalPaths.length === 1
+            ? `Terminé. Chemin ${mode === 'min' ? 'le plus court' : 'le plus long'} : ${optimalPaths[0].join(' → ')} = ${optimalValue}.`
+            : `Terminé. Aucun chemin de « ${labels[srcIdx ?? 0]} » à « ${labels[tgtIdx ?? 0]} ».`
+      : cyclicIdxs.size > 0
+        ? `Terminé. Matrice calculée — ⚠ cycle ${mode === 'max' ? 'positif' : 'négatif'} détecté (sommets : ${cyclicLabels.join(', ')}).`
+        : `Terminé. Matrice des chemins optimaux calculée pour toutes les paires.`;
 
     steps.push({
       stepIndex: idx++,
       description: desc,
       vertexStates, edgeStates,
-      metadata: makeMeta(srcIdx, tgtIdx, null, null, false, false, optimalPaths, optimalValue, 'done', n) as unknown as Record<string, unknown>,
+      metadata: makeMeta(srcIdx, tgtIdx, null, null, false, false, optimalPaths, optimalValue, 'done', n, cyclicLabels, isUnbounded) as unknown as Record<string, unknown>,
     });
   }
 
@@ -450,6 +514,26 @@ export const demoucronChoDef: AlgorithmDef = {
         ],
       },
       defaultParams: { mode: false, source: 'dv1', target: 'dv4' },
+    },
+    {
+      name: 'Cycle positif (MAX non borné)',
+      description: 'Le cycle B↔C (poids 4+3) rend le chemin le plus long non borné en mode maximisation.',
+      graph: {
+        directed: true, weighted: true,
+        vertices: [
+          { id: 'pv1', label: 'S', x: 80,  y: 200 },
+          { id: 'pv2', label: 'B', x: 260, y: 100 },
+          { id: 'pv3', label: 'C', x: 260, y: 300 },
+          { id: 'pv4', label: 'T', x: 440, y: 200 },
+        ],
+        edges: [
+          { id: 'pe1', source: 'pv1', target: 'pv2', weight: 2,  directed: true },
+          { id: 'pe2', source: 'pv2', target: 'pv3', weight: 4,  directed: true },
+          { id: 'pe3', source: 'pv3', target: 'pv2', weight: 3,  directed: true },
+          { id: 'pe4', source: 'pv3', target: 'pv4', weight: 5,  directed: true },
+        ],
+      },
+      defaultParams: { mode: true, source: 'pv1', target: 'pv4' },
     },
   ],
   validate(graph) {

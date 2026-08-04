@@ -251,6 +251,43 @@
 
 .cho-multi-label { color: var(--accent-base); margin-bottom: 4px; }
 
+.cho-cycle-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  background: color-mix(in srgb, #c47a2e 12%, transparent);
+  border: 1px solid color-mix(in srgb, #c47a2e 40%, transparent);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  color: #c47a2e;
+  margin-bottom: 8px;
+  svg { flex-shrink: 0; margin-top: 1px; }
+  strong { display: block; font-weight: 600; margin-bottom: 2px; }
+}
+
+.cho-cycle-nodes {
+  display: block;
+  color: var(--ink-500);
+  font-size: 11px;
+  margin-top: 1px;
+  &::before { content: 'Sommets concernés : '; font-weight: 500; color: var(--ink-400); }
+}
+
+.cho-unbounded-card {
+  border-color: color-mix(in srgb, #c47a2e 40%, transparent);
+  background: color-mix(in srgb, #c47a2e 6%, transparent);
+}
+
+.cho-unbounded-note {
+  font-size: 11.5px;
+  color: var(--ink-500);
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+:root { --warn-fg: #c47a2e; }
+
 .cho-path-index {
   font-size: 11px;
   font-weight: 600;

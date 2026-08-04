@@ -83,6 +83,9 @@ export class OutputPanelComponent {
   readonly choWValue = computed(() => this.choMeta()?.['wValue'] as number | null ?? null);
   readonly choImproved = computed(() => !!(this.choMeta()?.['improved']));
   readonly choTied = computed(() => !!(this.choMeta()?.['tied']));
+  readonly choPhase = computed(() => (this.choMeta()?.['phase'] as string) ?? '');
+  readonly choCyclicVertices = computed(() => (this.choMeta()?.['cyclicVertices'] as string[]) ?? []);
+  readonly choIsUnbounded = computed(() => !!(this.choMeta()?.['isUnbounded']));
   readonly choOptimalPath = computed(() => (this.choMeta()?.['optimalPath'] as string[]) ?? []);
   readonly choOptimalPaths = computed(() => (this.choMeta()?.['optimalPaths'] as string[][]) ?? []);
   readonly choOptimalValue = computed(() => this.choMeta()?.['optimalValue'] as number | null ?? null);

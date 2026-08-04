@@ -141,6 +141,18 @@
                 <span class="cho-pivot">Intermédiaire : <strong>{{ choIntermediate() }}</strong></span>
               }
             </div>
+            @if (choCyclicVertices().length > 0) {
+              <div class="cho-cycle-warning">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div>
+                  <strong>Cycle {{ choMode() === 'max' ? 'positif' : 'négatif' }} détecté</strong>
+                  <span class="cho-cycle-nodes">{{ choCyclicVertices().join(', ') }}</span>
+                </div>
+              </div>
+            }
             @if (choWValue() !== null) {
               <div class="cho-formula" [class.cho-improved]="choImproved()">
                 W[{{ choLabels()[choCurrentI()!] }}][{{ choLabels()[choCurrentJ()!] }}] = {{ choWValue() }}
@@ -228,7 +240,26 @@
           </div>
         }
 
-        @if (algId() === 'demoucron-cho' && choOptimalPaths().length > 0) {
+        @if (algId() === 'demoucron-cho' && choIsUnbounded()) {
+          <div class="result-card cho-unbounded-card">
+            <div class="gv-sub-label" style="color: var(--warn-fg)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span>Chemin non borné</span>
+            </div>
+            <div class="result-metric" style="color: var(--warn-fg)">
+              <span>{{ choMode() === 'max' ? 'Coût maximum' : 'Coût minimum' }}</span>
+              <strong>{{ choMode() === 'max' ? '+∞' : '-∞' }}</strong>
+            </div>
+            <p class="cho-unbounded-note">
+              Un cycle {{ choMode() === 'max' ? 'positif' : 'négatif' }} ({{ choCyclicVertices().join(', ') }})
+              permet d'augmenter le coût indéfiniment — aucun chemin fini n'est optimal.
+            </p>
+          </div>
+        }
+        @if (algId() === 'demoucron-cho' && !choIsUnbounded() && choOptimalPaths().length > 0) {
           <div class="result-card">
             @if (choOptimalPaths().length > 1) {
               <div class="gv-sub-label cho-multi-label">
