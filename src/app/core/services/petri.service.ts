@@ -278,6 +278,36 @@ export class PetriService {
     this.arcs.update(as => as.map(a => (a.id === id ? { ...a, weight: w } : a)));
   }
 
+  // ── Édition par matrice (génération du modèle depuis Pré / Post) ─────────────
+  /** Définit Pré[place][transition] : crée/met à jour/supprime l'arc place→transition. */
+  setPre(placeId: string, transitionId: string, weight: number) {
+    this.setArcCell('PreArc', placeId, transitionId, weight);
+  }
+
+  /** Définit Post[place][transition] : crée/met à jour/supprime l'arc transition→place. */
+  setPost(transitionId: string, placeId: string, weight: number) {
+    this.setArcCell('PostArc', transitionId, placeId, weight);
+  }
+
+  private setArcCell(kind: ArcKind, sourceId: string, targetId: string, weight: number) {
+    const w = Math.max(0, Math.round(weight || 0));
+    const existing = this.arcs().find(
+      a => a.kind === kind && a.sourceId === sourceId && a.targetId === targetId,
+    );
+    if (w <= 0) {
+      if (existing) this.removeArc(existing.id);
+      return;
+    }
+    if (existing) {
+      this.setArcWeight(existing.id, w);
+    } else {
+      this.arcs.update(as => [
+        ...as,
+        { id: crypto.randomUUID(), sourceId, targetId, weight: w, kind },
+      ]);
+    }
+  }
+
   // ── Points d'angle des arcs ──────────────────────────────────────────────────
   /** Insère un point d'angle à la position `index` de la ligne brisée. */
   addArcWaypoint(arcId: string, index: number, point: Point) {
@@ -347,6 +377,12 @@ export class PetriService {
   renameNode(id: string, label: string) {
     this.places.update(ps => ps.map(p => (p.id === id ? { ...p, label } : p)));
     this.transitions.update(ts => ts.map(t => (t.id === id ? { ...t, label } : t)));
+  }
+
+  /** Bascule l'orientation d'une transition (barre verticale ⇄ horizontale). */
+  toggleTransitionOrientation(id: string) {
+    this.transitions.update(ts =>
+      ts.map(t => (t.id === id ? { ...t, horizontal: !t.horizontal } : t)));
   }
 
   /** Définit la signification (description) d'une place ou d'une transition. */

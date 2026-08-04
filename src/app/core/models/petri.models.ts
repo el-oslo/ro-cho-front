@@ -18,6 +18,7 @@ export interface Transition {
   description: string; // signification réelle affichée dans la légende (ex. « Produire »)
   x: number;
   y: number;
+  horizontal?: boolean; // orientation : false/absent = barre verticale, true = horizontale
 }
 
 /** PreArc = place → transition (condition de franchissement)

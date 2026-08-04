@@ -1,19 +1,28 @@
 <div class="pm-wrap">
 
+  <!-- Barre d'édition du modèle -->
+  <div class="pm-toolbar">
+    <span class="pm-toolbar-label">Générer le modèle :</span>
+    <button class="pm-add" (click)="addPlace()">+ Place</button>
+    <button class="pm-add" (click)="addTransition()">+ Transition</button>
+  </div>
+
   @if (!hasNet()) {
     <div class="pm-empty">
-      Ajoutez au moins une place et une transition pour afficher les matrices.
+      Ajoutez au moins une place <em>et</em> une transition, puis remplissez les matrices
+      Pré / Post et le marquage initial M0 pour construire le réseau.
     </div>
-  } @else {
+  }
 
-    <!-- Vecteur de marquage courant + M0 -->
+  @if (hasNet()) {
+    <!-- Marquage courant + M0 éditable -->
     <section class="pm-section">
       <h3>Marquage</h3>
       <table class="pm-table">
         <thead>
           <tr>
             <th class="pm-corner">Place</th>
-            @for (p of placeLabels(); track $index) { <th>{{ p }}</th> }
+            @for (p of places(); track p.id) { <th>{{ p.label }}</th> }
           </tr>
         </thead>
         <tbody>
@@ -25,40 +34,113 @@
           </tr>
           <tr>
             <td class="pm-rowhead">M0 (initial)</td>
-            @for (v of initialMarking(); track $index) {
-              <td class="pm-cell" [class.pm-zero]="v === 0">{{ v }}</td>
+            @for (p of places(); track p.id) {
+              <td class="pm-cell pm-edit">
+                <input type="number" min="0" [value]="p.marking || ''" placeholder="0"
+                       (change)="setM0(p.id, $any($event.target).value)">
+              </td>
             }
           </tr>
         </tbody>
       </table>
     </section>
 
-    <!-- Matrice Pré -->
+    <!-- Matrice Pré (éditable) -->
     <section class="pm-section">
-      <h3>Pré (place × transition)</h3>
-      <ng-container *ngTemplateOutlet="matrix; context: { data: pre() }"></ng-container>
+      <h3>Pré (place × transition) — poids place → transition</h3>
+      <table class="pm-table">
+        <thead>
+          <tr>
+            <th class="pm-corner"></th>
+            @for (t of transitions(); track t.id) {
+              <th class="pm-headedit">
+                <input class="pm-label" [value]="t.label"
+                       (change)="rename(t.id, $any($event.target).value)">
+                <button class="pm-del" title="Supprimer" (click)="remove(t.id)">×</button>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of places(); track p.id; let i = $index) {
+            <tr>
+              <td class="pm-rowhead pm-headedit">
+                <input class="pm-label" [value]="p.label"
+                       (change)="rename(p.id, $any($event.target).value)">
+                <button class="pm-del" title="Supprimer" (click)="remove(p.id)">×</button>
+              </td>
+              @for (t of transitions(); track t.id; let j = $index) {
+                <td class="pm-cell pm-edit">
+                  <input type="number" min="0" [value]="pre()[i][j] || ''" placeholder="·"
+                         (change)="setPre(p.id, t.id, $any($event.target).value)">
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
     </section>
 
-    <!-- Matrice Post -->
+    <!-- Matrice Post (éditable) -->
     <section class="pm-section">
-      <h3>Post (place × transition)</h3>
-      <ng-container *ngTemplateOutlet="matrix; context: { data: post() }"></ng-container>
+      <h3>Post (place × transition) — poids transition → place</h3>
+      <table class="pm-table">
+        <thead>
+          <tr>
+            <th class="pm-corner"></th>
+            @for (t of transitions(); track t.id) { <th>{{ t.label }}</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of places(); track p.id; let i = $index) {
+            <tr>
+              <td class="pm-rowhead">{{ p.label }}</td>
+              @for (t of transitions(); track t.id; let j = $index) {
+                <td class="pm-cell pm-edit">
+                  <input type="number" min="0" [value]="post()[i][j] || ''" placeholder="·"
+                         (change)="setPost(p.id, t.id, $any($event.target).value)">
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
     </section>
 
-    <!-- Matrice d'incidence W = Post − Pré -->
+    <!-- Matrice d'incidence W = Post − Pré (dérivée, lecture seule) -->
     <section class="pm-section">
       <h3>W = Post − Pré (incidence)</h3>
-      <ng-container *ngTemplateOutlet="matrix; context: { data: incidence(), signed: true }"></ng-container>
+      <table class="pm-table">
+        <thead>
+          <tr>
+            <th class="pm-corner"></th>
+            @for (t of transitions(); track t.id) { <th>{{ t.label }}</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of incidence(); track $index; let i = $index) {
+            <tr>
+              <td class="pm-rowhead">{{ places()[i].label }}</td>
+              @for (v of row; track $index) {
+                <td class="pm-cell"
+                    [class.pm-zero]="v === 0" [class.pm-neg]="v < 0" [class.pm-pos]="v > 0">
+                  {{ v > 0 ? '+' : '' }}{{ v }}
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
     </section>
 
-    <!-- Vecteur de Parikh -->
+    <!-- Vecteur de Parikh (lecture seule) -->
     <section class="pm-section">
       <h3>Vecteur de Parikh (franchissements)</h3>
       <table class="pm-table">
         <thead>
           <tr>
             <th class="pm-corner">Transition</th>
-            @for (t of transLabels(); track $index) { <th>{{ t }}</th> }
+            @for (t of transitions(); track t.id) { <th>{{ t.label }}</th> }
           </tr>
         </thead>
         <tbody>
@@ -73,30 +155,3 @@
     </section>
   }
 </div>
-
-<!-- Gabarit réutilisable pour Pré / Post / W -->
-<ng-template #matrix let-data="data" let-signed="signed">
-  <table class="pm-table">
-    <thead>
-      <tr>
-        <th class="pm-corner"></th>
-        @for (t of transLabels(); track $index) { <th>{{ t }}</th> }
-      </tr>
-    </thead>
-    <tbody>
-      @for (row of data; track rowIdx; let rowIdx = $index) {
-        <tr>
-          <td class="pm-rowhead">{{ placeLabels()[rowIdx] }}</td>
-          @for (v of row; track colIdx; let colIdx = $index) {
-            <td class="pm-cell"
-                [class.pm-zero]="v === 0"
-                [class.pm-neg]="signed && v < 0"
-                [class.pm-pos]="signed && v > 0">
-              {{ signed && v > 0 ? '+' : '' }}{{ v }}
-            </td>
-          }
-        </tr>
-      }
-    </tbody>
-  </table>
-</ng-template>

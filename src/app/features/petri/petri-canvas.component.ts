@@ -79,7 +79,7 @@ export class PetriCanvasComponent implements OnDestroy {
       case 'arc': return 'Cliquez une place puis une transition (ou l’inverse) pour relier';
       case 'inject': return 'Cliquez une place pour injecter un jeton (+1)';
       case 'text': return 'Cliquez pour ajouter une annotation texte';
-      default: return 'Glissez la ligne d’un arc pour créer un coude · double-clic sur un coude pour le retirer · double-clic : place = marquage, transition = franchir, arc = poids';
+      default: return 'Glissez la ligne d’un arc pour créer un coude · double-clic sur un coude pour le retirer · R = pivoter la transition · double-clic : place = marquage, transition = franchir, arc = poids';
     }
   });
 
@@ -150,7 +150,9 @@ export class PetriCanvasComponent implements OnDestroy {
       if (Math.hypot(p.x - wx, p.y - wy) <= PLACE_R) return { id: p.id, kind: 'place' };
     }
     for (const t of this.petri.transitions()) {
-      if (Math.abs(t.x - wx) <= TRANS_W / 2 + 4 && Math.abs(t.y - wy) <= TRANS_H / 2 + 4)
+      const hw = (t.horizontal ? TRANS_H : TRANS_W) / 2 + 4;
+      const hh = (t.horizontal ? TRANS_W : TRANS_H) / 2 + 4;
+      if (Math.abs(t.x - wx) <= hw && Math.abs(t.y - wy) <= hh)
         return { id: t.id, kind: 'transition' };
     }
     return null;
@@ -245,9 +247,12 @@ export class PetriCanvasComponent implements OnDestroy {
     if (this.petri.isPlace(id)) {
       return { x: pos.x + ux * PLACE_R, y: pos.y + uy * PLACE_R };
     }
-    // transition : intersection avec le rectangle
-    const tx = Math.abs(ux) < 1e-6 ? Infinity : (TRANS_W / 2) / Math.abs(ux);
-    const ty = Math.abs(uy) < 1e-6 ? Infinity : (TRANS_H / 2) / Math.abs(uy);
+    // transition : intersection avec le rectangle (dimensions selon l'orientation)
+    const tr = this.petri.transitions().find(tr => tr.id === id);
+    const halfW = (tr?.horizontal ? TRANS_H : TRANS_W) / 2;
+    const halfH = (tr?.horizontal ? TRANS_W : TRANS_H) / 2;
+    const tx = Math.abs(ux) < 1e-6 ? Infinity : halfW / Math.abs(ux);
+    const ty = Math.abs(uy) < 1e-6 ? Infinity : halfH / Math.abs(uy);
     const t = Math.min(tx, ty);
     return { x: pos.x + ux * t, y: pos.y + uy * t };
   }
@@ -462,6 +467,10 @@ export class PetriCanvasComponent implements OnDestroy {
     const tag = (e.target as HTMLElement)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     if (e.key === 'Escape') { this.arcSource = null; this.ghostEnd.set(null); this.selected.set(null); }
+    if ((e.key === 'r' || e.key === 'R') && this.selected() && this.petri.isTransition(this.selected()!)) {
+      this.petri.toggleTransitionOrientation(this.selected()!);
+      e.preventDefault();
+    }
     if (e.key === 'Delete' && this.selected()) {
       const id = this.selected()!;
       if (this.petri.arcs().some(a => a.id === id)) this.petri.removeArc(id);
@@ -756,9 +765,13 @@ export class PetriCanvasComponent implements OnDestroy {
     const lf = this.petri.lastFired();
     const flash = lf && lf.ids.includes(t.id) && performance.now() - lf.ts < FLASH_MS;
 
+    const horizontal = !!t.horizontal;
+    const w = horizontal ? TRANS_H : TRANS_W;
+    const h = horizontal ? TRANS_W : TRANS_H;
+
     const rect = this.el('rect');
-    rect.setAttribute('x', String(-TRANS_W / 2)); rect.setAttribute('y', String(-TRANS_H / 2));
-    rect.setAttribute('width', String(TRANS_W)); rect.setAttribute('height', String(TRANS_H));
+    rect.setAttribute('x', String(-w / 2)); rect.setAttribute('y', String(-h / 2));
+    rect.setAttribute('width', String(w)); rect.setAttribute('height', String(h));
     rect.setAttribute('rx', '2');
     rect.setAttribute('fill', flash ? '#e0a92e' : (dark ? '#2a3340' : '#41505f'));
     // Mise en évidence « live » des transitions franchissables (même à l'arrêt).
@@ -767,10 +780,17 @@ export class PetriCanvasComponent implements OnDestroy {
     grp.appendChild(rect);
 
     const label = this.el('text');
-    label.setAttribute('x', String(TRANS_W / 2 + 6)); label.setAttribute('y', '0');
-    label.setAttribute('dominant-baseline', 'central');
     label.setAttribute('fill', dark ? '#c7d0da' : '#333b45');
     label.setAttribute('font-size', '12'); label.setAttribute('font-weight', '600');
+    if (horizontal) {
+      // étiquette sous la barre horizontale
+      label.setAttribute('x', '0'); label.setAttribute('y', String(h / 2 + 12));
+      label.setAttribute('text-anchor', 'middle');
+    } else {
+      // étiquette à droite de la barre verticale
+      label.setAttribute('x', String(w / 2 + 6)); label.setAttribute('y', '0');
+      label.setAttribute('dominant-baseline', 'central');
+    }
     label.textContent = t.label;
     grp.appendChild(label);
 
