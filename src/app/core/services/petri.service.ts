@@ -278,6 +278,57 @@ export class PetriService {
     this.arcs.update(as => as.map(a => (a.id === id ? { ...a, weight: w } : a)));
   }
 
+  // ── Points d'angle des arcs ──────────────────────────────────────────────────
+  /** Insère un point d'angle à la position `index` de la ligne brisée. */
+  addArcWaypoint(arcId: string, index: number, point: Point) {
+    this.arcs.update(as => as.map(a => {
+      if (a.id !== arcId) return a;
+      const wps = [...(a.waypoints ?? [])];
+      wps.splice(Math.max(0, Math.min(index, wps.length)), 0, point);
+      return { ...a, waypoints: wps };
+    }));
+  }
+
+  updateArcWaypoint(arcId: string, index: number, point: Point) {
+    this.arcs.update(as => as.map(a => {
+      if (a.id !== arcId || !a.waypoints) return a;
+      const wps = a.waypoints.map((w, i) => (i === index ? point : w));
+      return { ...a, waypoints: wps };
+    }));
+  }
+
+  removeArcWaypoint(arcId: string, index: number) {
+    this.arcs.update(as => as.map(a => {
+      if (a.id !== arcId || !a.waypoints) return a;
+      const wps = a.waypoints.filter((_, i) => i !== index);
+      return { ...a, waypoints: wps };
+    }));
+  }
+
+  /** Rétablit la ligne droite (supprime tous les points d'angle). */
+  clearArcWaypoints(arcId: string) {
+    this.arcs.update(as => as.map(a => (a.id === arcId ? { ...a, waypoints: [] } : a)));
+  }
+
+  // ── Annotations texte ────────────────────────────────────────────────────────
+  addNote(pos: { x: number; y: number }, text = ''): TextNote {
+    const note: TextNote = { id: crypto.randomUUID(), x: pos.x, y: pos.y, text };
+    this.notes.update(ns => [...ns, note]);
+    return note;
+  }
+
+  updateNoteText(id: string, text: string) {
+    this.notes.update(ns => ns.map(n => (n.id === id ? { ...n, text } : n)));
+  }
+
+  updateNotePosition(id: string, x: number, y: number) {
+    this.notes.update(ns => ns.map(n => (n.id === id ? { ...n, x, y } : n)));
+  }
+
+  removeNote(id: string) {
+    this.notes.update(ns => ns.filter(n => n.id !== id));
+  }
+
   removeNode(id: string) {
     this.places.update(ps => ps.filter(p => p.id !== id));
     this.transitions.update(ts => ts.filter(t => t.id !== id));
@@ -334,6 +385,7 @@ export class PetriService {
     this.places.set([]);
     this.transitions.set([]);
     this.arcs.set([]);
+    this.notes.set([]);
     this.markingMap.set({});
     this.firingLog.set([]);
     this.injectionLog.set([]);
@@ -344,7 +396,8 @@ export class PetriService {
     this.stop();
     this.places.set(net.places.map(p => ({ ...p, description: p.description ?? '' })));
     this.transitions.set(net.transitions.map(t => ({ ...t, description: t.description ?? '' })));
-    this.arcs.set(net.arcs.map(a => ({ ...a })));
+    this.arcs.set(net.arcs.map(a => ({ ...a, waypoints: a.waypoints ? [...a.waypoints] : [] })));
+    this.notes.set((net.notes ?? []).map(n => ({ ...n })));
     const map: Record<string, number> = {};
     for (const p of net.places) map[p.id] = p.marking;
     this.markingMap.set(map);
@@ -359,7 +412,8 @@ export class PetriService {
     return {
       places: this.places().map(p => ({ ...p })),
       transitions: this.transitions().map(t => ({ ...t })),
-      arcs: this.arcs().map(a => ({ ...a })),
+      arcs: this.arcs().map(a => ({ ...a, waypoints: a.waypoints ? [...a.waypoints] : [] })),
+      notes: this.notes().map(n => ({ ...n })),
     };
   }
 

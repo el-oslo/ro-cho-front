@@ -19,6 +19,9 @@
     <button [class.on]="tool() === 'inject'" (click)="setTool('inject')" title="Injecter un jeton (+1)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
     </button>
+    <button [class.on]="tool() === 'text'" (click)="setTool('text')" title="Ajouter une annotation texte">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="9" y1="20" x2="15" y2="20"/></svg>
+    </button>
   </div>
 
   <!-- Contrôles de vue -->
@@ -67,6 +70,21 @@
       <div class="pc-overlay-actions">
         <button (click)="confirmWeight()">OK</button>
         <button (click)="weightOverlay.set(null)">Annuler</button>
+      </div>
+    </div>
+  }
+
+  <!-- Overlay : annotation texte -->
+  @if (noteOverlay(); as o) {
+    <div class="pc-overlay pc-overlay-note" [style.left.px]="o.x" [style.top.px]="o.y">
+      <label>Annotation</label>
+      <textarea rows="3" [(ngModel)]="o.value"
+                (keydown.escape)="cancelNote()"
+                (keydown.control.enter)="confirmNote()"
+                placeholder="Votre description…" autofocus></textarea>
+      <div class="pc-overlay-actions">
+        <button (click)="confirmNote()">OK</button>
+        <button (click)="cancelNote()">Annuler</button>
       </div>
     </div>
   }

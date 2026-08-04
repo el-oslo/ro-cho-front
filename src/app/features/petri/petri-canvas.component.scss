@@ -99,7 +99,8 @@
     color: var(--mat-sys-on-surface-variant);
   }
 
-  input {
+  input,
+  textarea {
     width: 90px;
     padding: 5px 7px;
     border-radius: 6px;
@@ -109,6 +110,12 @@
     font: inherit;
     outline: none;
     &:focus { border-color: var(--mat-sys-primary); }
+  }
+
+  textarea {
+    width: 200px;
+    resize: vertical;
+    font-size: 0.82rem;
   }
 
   .pc-overlay-actions {
