@@ -1,0 +1,94 @@
+<div class="pctrl">
+
+  <!-- Simulation -->
+  <section class="pctrl-section">
+    <div class="pctrl-title">Simulation</div>
+
+    <button class="pctrl-run" [class.running]="petri.isRunning()" (click)="petri.toggleRun()">
+      @if (petri.isRunning()) {
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <span>Arrêter</span>
+      } @else {
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg>
+        <span>Démarrer</span>
+      }
+    </button>
+
+    <div class="pctrl-row">
+      <button class="pctrl-btn" (click)="petri.tick()" title="Un pas manuel">Pas ▷</button>
+      <button class="pctrl-btn" (click)="petri.reset()" title="Retour au marquage initial M0">Reset M0</button>
+    </div>
+
+    <label class="pctrl-field">
+      <span>Vitesse du tick : {{ petri.tickInterval() }} ms</span>
+      <input type="range" min="200" max="3000" step="100"
+             [value]="petri.tickInterval()" (input)="setInterval($any($event.target).value)">
+    </label>
+
+    <label class="pctrl-field">
+      <span>Conflit (transitions simultanées)</span>
+      <select [value]="petri.conflictPolicy()" (change)="setPolicy($any($event.target).value)">
+        @for (p of policies; track p.value) {
+          <option [value]="p.value">{{ p.label }}</option>
+        }
+      </select>
+    </label>
+  </section>
+
+  <!-- Indicateurs d'état -->
+  <section class="pctrl-section">
+    <div class="pctrl-title">État</div>
+    <div class="pctrl-badges">
+      <span class="pctrl-badge" [class.on]="firableCount() > 0">
+        {{ firableCount() }} franchissable(s)
+      </span>
+      @if (petri.hasConflict()) {
+        <span class="pctrl-badge warn">Conflit</span>
+      }
+      @if (petri.deadlock()) {
+        <span class="pctrl-badge danger">Blocage (deadlock)</span>
+      }
+    </div>
+  </section>
+
+  <!-- Marquage initial (un champ par place) -->
+  <section class="pctrl-section">
+    <div class="pctrl-title">Marquage initial (M0)</div>
+    @if (places().length === 0) {
+      <div class="pctrl-muted">Aucune place. Utilisez l'outil « place » sur le canevas.</div>
+    } @else {
+      <div class="pctrl-marking-grid">
+        @for (p of places(); track p.id; let i = $index) {
+          <div class="pctrl-marking-item">
+            <span class="pctrl-plabel">{{ p.label }}</span>
+            <input type="number" min="0" [value]="p.marking"
+                   (change)="onMarkingInput(p.id, $any($event.target).value)">
+            <button class="pctrl-plus" title="Injecter un jeton (+1)" (click)="petri.injectToken(p.id, 1)">+</button>
+            <span class="pctrl-current" title="Marquage courant">→ {{ marking()[i] }}</span>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Réseau : modèles / import / export -->
+  <section class="pctrl-section">
+    <div class="pctrl-title">Réseau</div>
+    <label class="pctrl-field">
+      <span>Charger un modèle</span>
+      <select #presetSel (change)="loadPreset($any($event.target).value); presetSel.value=''">
+        <option value="">— choisir —</option>
+        @for (p of petri.presets; track p.name) {
+          <option [value]="p.name">{{ p.name }}</option>
+        }
+      </select>
+    </label>
+    <div class="pctrl-row">
+      <button class="pctrl-btn" (click)="triggerImport()">Importer</button>
+      <button class="pctrl-btn" (click)="petri.exportJSON()">Exporter</button>
+    </div>
+    <button class="pctrl-btn danger-outline" (click)="petri.clear()">Effacer le réseau</button>
+    <input #fileInput type="file" accept=".json" hidden (change)="onFileSelected($event)">
+  </section>
+
+</div>

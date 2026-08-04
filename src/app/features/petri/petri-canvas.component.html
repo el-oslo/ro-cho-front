@@ -1,0 +1,69 @@
+<div class="pc-wrap">
+
+  <!-- Palette d'outils -->
+  <div class="pc-palette">
+    <button [class.on]="tool() === 'select'" (click)="setTool('select')" title="Sélectionner / déplacer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3l7.5 18 2.5-7 7-2.5z"/>
+      </svg>
+    </button>
+    <button [class.on]="tool() === 'place'" (click)="setTool('place')" title="Ajouter une place">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
+    </button>
+    <button [class.on]="tool() === 'transition'" (click)="setTool('transition')" title="Ajouter une transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="10" y="4" width="4" height="16" rx="1"/></svg>
+    </button>
+    <button [class.on]="tool() === 'arc'" (click)="setTool('arc')" title="Relier (arc pondéré)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="12" x2="18" y2="12"/><polyline points="13 7 19 12 13 17"/></svg>
+    </button>
+    <button [class.on]="tool() === 'inject'" (click)="setTool('inject')" title="Injecter un jeton (+1)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    </button>
+  </div>
+
+  <!-- Contrôles de vue -->
+  <div class="pc-viewctl">
+    <button (click)="zoomIn()" title="Zoom avant">+</button>
+    <button (click)="zoomOut()" title="Zoom arrière">−</button>
+    <button (click)="fit()" title="Ajuster">⤢</button>
+    <button [class.on]="showGrid()" (click)="toggleGrid()" title="Grille">#</button>
+  </div>
+
+  <div class="pc-hint">{{ toolHint() }}</div>
+
+  <svg #svgEl class="pc-svg"
+       (mousedown)="onMouseDown($event)"
+       (mousemove)="onMouseMove($event)"
+       (mouseup)="onMouseUp()"
+       (click)="onClick($event)"
+       (dblclick)="onDblClick($event)"
+       (wheel)="onWheel($event)"
+       (contextmenu)="$event.preventDefault()"></svg>
+
+  <!-- Overlay : marquage initial d'une place -->
+  @if (markingOverlay(); as o) {
+    <div class="pc-overlay" [style.left.px]="o.x" [style.top.px]="o.y">
+      <label>Marquage M0</label>
+      <input type="number" min="0" [(ngModel)]="o.value" (keydown.enter)="confirmMarking()"
+             (keydown.escape)="markingOverlay.set(null)" autofocus>
+      <div class="pc-overlay-actions">
+        <button (click)="confirmMarking()">OK</button>
+        <button (click)="markingOverlay.set(null)">Annuler</button>
+      </div>
+    </div>
+  }
+
+  <!-- Overlay : poids d'un arc -->
+  @if (weightOverlay(); as o) {
+    <div class="pc-overlay" [style.left.px]="o.x" [style.top.px]="o.y">
+      <label>Poids de l'arc</label>
+      <input type="number" min="1" [(ngModel)]="o.value" (keydown.enter)="confirmWeight()"
+             (keydown.escape)="weightOverlay.set(null)" autofocus>
+      <div class="pc-overlay-actions">
+        <button (click)="confirmWeight()">OK</button>
+        <button (click)="weightOverlay.set(null)">Annuler</button>
+      </div>
+    </div>
+  }
+
+</div>

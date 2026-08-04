@@ -3,11 +3,18 @@
   <app-toolbar
     [darkMode]="darkMode()"
     [mode]="mode()"
+    [view]="view()"
     (darkModeChange)="onDarkModeChange($event)"
     (modeChange)="mode.set($event)"
+    (viewChange)="view.set($event)"
     (loadPreset)="openPresetDialog()"
   />
 
+  @if (view() === 'petri') {
+    <div class="gv-petri-workspace">
+      <app-petri-workspace [darkMode]="darkMode()" />
+    </div>
+  } @else {
   <div class="gv-workspace"
        [class.output-collapsed]="outputCollapsed()"
        [style.grid-template-columns]="workspaceColumns()">
@@ -101,5 +108,6 @@
     </div>
 
   </div>
+  }
 
 </div>

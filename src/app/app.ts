@@ -11,9 +11,11 @@ import { MatrixEditorComponent } from './features/matrix-editor/matrix-editor.co
 import { PlaybackBarComponent } from './features/playback-bar/playback-bar.component';
 import { OutputPanelComponent } from './features/output-panel/output-panel.component';
 import { PresetLoaderComponent, PresetLoaderResult } from './shared/preset-loader/preset-loader.component';
+import { PetriWorkspaceComponent } from './features/petri/petri-workspace.component';
 
 import { GraphService } from './core/services/graph.service';
 import { AlgorithmRunnerService } from './core/services/algorithm-runner.service';
+import { PetriService } from './core/services/petri.service';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +24,7 @@ import { AlgorithmRunnerService } from './core/services/algorithm-runner.service
     ToolbarComponent, AlgorithmPanelComponent,
     CanvasComponent, MatrixEditorComponent,
     PlaybackBarComponent, OutputPanelComponent,
+    PetriWorkspaceComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -29,9 +32,11 @@ import { AlgorithmRunnerService } from './core/services/algorithm-runner.service
 export class App implements OnInit {
   protected graphService = inject(GraphService);
   protected runner = inject(AlgorithmRunnerService);
+  protected petri = inject(PetriService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
+  readonly view = signal<'graph' | 'petri'>('graph');
   readonly mode = signal<'edit' | 'visualise'>('edit');
   readonly darkMode = signal<boolean>(false);
   readonly activeTab = signal<'canvas' | 'matrix'>('canvas');
@@ -58,6 +63,12 @@ export class App implements OnInit {
   onGlobalKey(e: KeyboardEvent) {
     const tag = (e.target as HTMLElement)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    if (this.view() === 'petri') {
+      // En vue Petri : Espace démarre/arrête la simulation continue.
+      if (e.code === 'Space') { e.preventDefault(); this.petri.toggleRun(); }
+      return;
+    }
 
     if (e.code === 'Space') { e.preventDefault(); this.togglePlay(); }
     if (e.key === 'ArrowRight') { e.preventDefault(); this.runner.nextStep(); }

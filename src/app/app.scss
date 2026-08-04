@@ -18,6 +18,14 @@
   transition: grid-template-columns .22s ease;
 }
 
+// ── Réseaux de Petri : occupe toute la hauteur restante ───────────────────────
+.gv-petri-workspace {
+  flex: 1;
+  min-height: 0;
+  height: calc(100vh - var(--topbar-h));
+  overflow: hidden;
+}
+
 // ── Algorithm rail wrapper (collapsible left panel) ───────────────────────────
 .gv-algo-rail {
   display: flex;

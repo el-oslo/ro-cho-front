@@ -13,9 +13,11 @@ export class ToolbarComponent {
 
   readonly darkMode = input<boolean>(false);
   readonly mode = input<'edit' | 'visualise'>('edit');
+  readonly view = input<'graph' | 'petri'>('graph');
 
   readonly darkModeChange = output<boolean>();
   readonly modeChange = output<'edit' | 'visualise'>();
+  readonly viewChange = output<'graph' | 'petri'>();
   readonly loadPreset = output<void>();
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;

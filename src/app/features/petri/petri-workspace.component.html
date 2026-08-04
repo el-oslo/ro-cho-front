@@ -1,0 +1,65 @@
+<div class="pw" [class.controls-collapsed]="controlsCollapsed()" [class.log-collapsed]="logCollapsed()">
+
+  <!-- Rail gauche : contrôles -->
+  <aside class="pw-rail pw-left" [class.collapsed]="controlsCollapsed()">
+    @if (!controlsCollapsed()) {
+      <app-petri-controls />
+    }
+    <button class="pw-toggle" (click)="controlsCollapsed.set(!controlsCollapsed())"
+            [title]="controlsCollapsed() ? 'Ouvrir' : 'Fermer'">
+      {{ controlsCollapsed() ? '›' : '‹' }}
+    </button>
+  </aside>
+
+  <!-- Scène centrale -->
+  <main class="pw-stage">
+    <div class="pw-tabs">
+      <button [class.on]="activeTab() === 'canvas'" (click)="activeTab.set('canvas')">Canevas</button>
+      <button [class.on]="activeTab() === 'matrix'" (click)="activeTab.set('matrix')">Matrices</button>
+      @if (petri.isRunning()) {
+        <span class="pw-live"><span class="pw-live-dot"></span> Simulation en marche</span>
+      }
+    </div>
+
+    <div class="pw-stage-body">
+      @if (activeTab() === 'canvas') {
+        <app-petri-canvas [darkMode]="darkMode()" />
+      } @else {
+        <app-petri-matrix />
+      }
+    </div>
+  </main>
+
+  <!-- Rail droit : journal de franchissement -->
+  <aside class="pw-rail pw-right" [class.collapsed]="logCollapsed()">
+    <button class="pw-toggle" (click)="logCollapsed.set(!logCollapsed())"
+            [title]="logCollapsed() ? 'Ouvrir' : 'Fermer'">
+      {{ logCollapsed() ? '‹' : '›' }}
+    </button>
+    @if (!logCollapsed()) {
+      <div class="pw-log">
+        <div class="pw-log-head">
+          <span>Journal</span>
+          <span class="pw-log-counts">{{ fireCount() }} tir · {{ injectCount() }} inj.</span>
+        </div>
+        @if (log().length === 0) {
+          <div class="pw-log-empty">Aucun événement. Démarrez la simulation ou injectez des jetons.</div>
+        } @else {
+          <ul class="pw-log-list">
+            @for (e of log(); track e.ts) {
+              <li [class.fire]="e.kind === 'fire'" [class.inject]="e.kind === 'inject'">
+                <span class="pw-log-icon">{{ e.kind === 'fire' ? '⚡' : '＋' }}</span>
+                <span class="pw-log-label">
+                  @if (e.kind === 'fire') { Franchissement <b>{{ e.label }}</b> }
+                  @else { Injection <b>{{ e.label }}</b> (+{{ e.amount }}) }
+                </span>
+                <span class="pw-log-time">{{ time(e.ts) }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </aside>
+
+</div>
