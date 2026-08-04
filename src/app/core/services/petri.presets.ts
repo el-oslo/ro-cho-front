@@ -7,10 +7,10 @@ export interface PetriPreset {
 }
 
 // Petits helpers de construction (ids lisibles, suffisent comme clés).
-const P = (id: string, label: string, x: number, y: number, marking: number): Place =>
-  ({ id, label, x, y, marking });
-const T = (id: string, label: string, x: number, y: number): Transition =>
-  ({ id, label, x, y });
+const P = (id: string, label: string, description: string, x: number, y: number, marking: number): Place =>
+  ({ id, label, description, x, y, marking });
+const T = (id: string, label: string, description: string, x: number, y: number): Transition =>
+  ({ id, label, description, x, y });
 const pre = (place: string, trans: string, weight = 1): Arc =>
   ({ id: `pre_${place}_${trans}`, sourceId: place, targetId: trans, weight, kind: 'PreArc' });
 const post = (trans: string, place: string, weight = 1): Arc =>
@@ -19,17 +19,17 @@ const post = (trans: string, place: string, weight = 1): Arc =>
 // ── Producteur / Consommateur avec tampon ────────────────────────────────────
 const producerConsumer: PetriNet = {
   places: [
-    P('pr', 'PrêtProd', 120, 120, 1),
-    P('pb', 'ProdOccupé', 300, 120, 0),
-    P('buf', 'Tampon', 480, 220, 0),
-    P('cr', 'PrêtCons', 660, 120, 1),
-    P('cb', 'ConsOccupé', 480, 120, 0),
+    P('pr', 'P1', 'Prêt production', 120, 120, 1),
+    P('pb', 'P2', 'Production en cours', 300, 120, 0),
+    P('buf', 'P3', 'Tampon', 480, 220, 0),
+    P('cr', 'P4', 'Prêt consommation', 660, 120, 1),
+    P('cb', 'P5', 'Consommation en cours', 480, 120, 0),
   ],
   transitions: [
-    T('t1', 'Produire', 210, 120),
-    T('t2', 'Déposer', 390, 120),
-    T('t3', 'Retirer', 660, 220),
-    T('t4', 'Consommer', 480, 320),
+    T('t1', 'T1', 'Produire', 210, 120),
+    T('t2', 'T2', 'Déposer', 390, 120),
+    T('t3', 'T3', 'Retirer', 660, 220),
+    T('t4', 'T4', 'Consommer', 480, 320),
   ],
   arcs: [
     pre('pr', 't1'), post('t1', 'pb'),
@@ -44,17 +44,17 @@ const producerConsumer: PetriNet = {
 // temps mais se disputent le jeton du sémaphore.
 const mutex: PetriNet = {
   places: [
-    P('p1', 'P1 libre', 120, 100, 1),
-    P('c1', 'P1 critique', 340, 100, 0),
-    P('sem', 'Sémaphore', 260, 240, 1),
-    P('p2', 'P2 libre', 120, 380, 1),
-    P('c2', 'P2 critique', 340, 380, 0),
+    P('p1', 'P1', 'Processus 1 libre', 120, 100, 1),
+    P('c1', 'P2', 'Processus 1 en section critique', 340, 100, 0),
+    P('sem', 'P3', 'Sémaphore', 260, 240, 1),
+    P('p2', 'P4', 'Processus 2 libre', 120, 380, 1),
+    P('c2', 'P5', 'Processus 2 en section critique', 340, 380, 0),
   ],
   transitions: [
-    T('t1e', 'P1 entrer', 230, 100),
-    T('t1x', 'P1 sortir', 460, 100),
-    T('t2e', 'P2 entrer', 230, 380),
-    T('t2x', 'P2 sortir', 460, 380),
+    T('t1e', 'T1', 'Processus 1 entre', 230, 100),
+    T('t1x', 'T2', 'Processus 1 sort', 460, 100),
+    T('t2e', 'T3', 'Processus 2 entre', 230, 380),
+    T('t2x', 'T4', 'Processus 2 sort', 460, 380),
   ],
   arcs: [
     pre('p1', 't1e'), pre('sem', 't1e'), post('t1e', 'c1'),

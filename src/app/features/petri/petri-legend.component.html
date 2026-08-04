@@ -1,0 +1,68 @@
+<div class="plg" [class.collapsed]="collapsed()">
+
+  <button class="plg-head" (click)="collapsed.set(!collapsed())">
+    <span class="plg-chevron">{{ collapsed() ? '▸' : '▾' }}</span>
+    <span>Légende</span>
+    <span class="plg-count">{{ places().length }}P · {{ transitions().length }}T</span>
+  </button>
+
+  @if (!collapsed()) {
+    <div class="plg-body">
+
+      <!-- Places -->
+      <div class="plg-group">
+        <div class="plg-group-title">
+          <span class="plg-icon place"></span> Places
+        </div>
+        @if (places().length === 0) {
+          <div class="plg-empty">Aucune place</div>
+        } @else {
+          @for (p of places(); track p.id) {
+            <div class="plg-item">
+              <span class="plg-icon place"></span>
+              <input class="plg-code" [value]="p.label" title="Code affiché sur le canevas"
+                     (change)="rename(p.id, $any($event.target).value)"
+                     (keydown.enter)="$any($event.target).blur()">
+              <span class="plg-colon">:</span>
+              <input class="plg-desc" [value]="p.description" placeholder="signification…"
+                     title="Signification"
+                     (change)="setDescription(p.id, $any($event.target).value)"
+                     (keydown.enter)="$any($event.target).blur()">
+              <input class="plg-mark" type="number" min="0" [value]="p.marking"
+                     title="Marquage initial (M0)"
+                     (change)="setMarking(p.id, $any($event.target).value)">
+              <span class="plg-cur" title="Marquage courant">{{ markingOf(p.id) }}</span>
+              <button class="plg-del" title="Supprimer" (click)="remove(p.id)">×</button>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Transitions -->
+      <div class="plg-group">
+        <div class="plg-group-title">
+          <span class="plg-icon trans"></span> Transitions
+        </div>
+        @if (transitions().length === 0) {
+          <div class="plg-empty">Aucune transition</div>
+        } @else {
+          @for (t of transitions(); track t.id) {
+            <div class="plg-item">
+              <span class="plg-icon trans"></span>
+              <input class="plg-code" [value]="t.label" title="Code affiché sur le canevas"
+                     (change)="rename(t.id, $any($event.target).value)"
+                     (keydown.enter)="$any($event.target).blur()">
+              <span class="plg-colon">:</span>
+              <input class="plg-desc" [value]="t.description" placeholder="signification…"
+                     title="Signification"
+                     (change)="setDescription(t.id, $any($event.target).value)"
+                     (keydown.enter)="$any($event.target).blur()">
+              <button class="plg-del" title="Supprimer" (click)="remove(t.id)">×</button>
+            </div>
+          }
+        }
+      </div>
+
+    </div>
+  }
+</div>

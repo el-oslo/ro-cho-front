@@ -29,6 +29,11 @@
     <button [class.on]="showGrid()" (click)="toggleGrid()" title="Grille">#</button>
   </div>
 
+  <!-- Légende éditable superposée -->
+  <div class="pc-legend-slot">
+    <app-petri-legend />
+  </div>
+
   <div class="pc-hint">{{ toolHint() }}</div>
 
   <svg #svgEl class="pc-svg"

@@ -56,6 +56,15 @@
 .pc-palette { top: 12px; left: 12px; }
 .pc-viewctl { top: 12px; right: 12px; }
 
+.pc-legend-slot {
+  position: absolute;
+  top: 58px;
+  left: 12px;
+  z-index: 6;
+  max-height: calc(100% - 82px);
+  display: flex;
+}
+
 .pc-hint {
   position: absolute;
   bottom: 12px;

@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PetriService } from '../../core/services/petri.service';
 import { Arc, Place, Transition } from '../../core/models/petri.models';
+import { PetriLegendComponent } from './petri-legend.component';
 
 type Tool = 'select' | 'place' | 'transition' | 'arc' | 'inject';
 
@@ -18,7 +19,7 @@ const FLASH_MS = 450;
 @Component({
   selector: 'app-petri-canvas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PetriLegendComponent],
   templateUrl: './petri-canvas.component.html',
   styleUrl: './petri-canvas.component.scss',
 })
@@ -471,6 +472,11 @@ export class PetriCanvasComponent implements OnDestroy {
   private drawPlace(g: SVGElement, p: Place, dark: boolean) {
     const grp = this.el('g');
     grp.setAttribute('transform', `translate(${p.x},${p.y})`);
+    if (p.description) {
+      const title = this.el('title');
+      title.textContent = `${p.label} : ${p.description}`;
+      grp.appendChild(title);
+    }
     const isSel = this.selected() === p.id;
     const injected = this.petri.lastInjected();
     const flashInject = injected && injected.id === p.id && performance.now() - injected.ts < FLASH_MS;
@@ -526,6 +532,11 @@ export class PetriCanvasComponent implements OnDestroy {
   private drawTransition(g: SVGElement, t: Transition, dark: boolean) {
     const grp = this.el('g');
     grp.setAttribute('transform', `translate(${t.x},${t.y})`);
+    if (t.description) {
+      const title = this.el('title');
+      title.textContent = `${t.label} : ${t.description}`;
+      grp.appendChild(title);
+    }
     const isSel = this.selected() === t.id;
     const firable = this.petri.firable().has(t.id);
     const lf = this.petri.lastFired();

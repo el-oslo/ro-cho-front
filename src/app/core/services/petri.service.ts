@@ -1,7 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
-  Arc, ArcKind, ConflictPolicy, PetriNet, Place, Transition, emptyPetriNet,
+  Arc, ArcKind, ConflictPolicy, PetriNet, Place, Point, TextNote, Transition, emptyPetriNet,
 } from '../models/petri.models';
 import { PETRI_PRESETS } from './petri.presets';
 
@@ -24,6 +24,7 @@ export class PetriService {
   readonly places = signal<Place[]>([]);
   readonly transitions = signal<Transition[]>([]);
   readonly arcs = signal<Arc[]>([]);
+  readonly notes = signal<TextNote[]>([]);
 
   // Marquage courant, stocké par id de place pour éviter toute dérive d'index
   // quand on ajoute/supprime des places. Le vecteur aligné est dérivé (marking).
@@ -229,6 +230,7 @@ export class PetriService {
     const place: Place = {
       id: crypto.randomUUID(),
       label: this.nextLabel('P', this.places().map(p => p.label)),
+      description: '',
       x: pos.x, y: pos.y, marking: 0,
     };
     this.places.update(ps => [...ps, place]);
@@ -240,6 +242,7 @@ export class PetriService {
     const t: Transition = {
       id: crypto.randomUUID(),
       label: this.nextLabel('T', this.transitions().map(x => x.label)),
+      description: '',
       x: pos.x, y: pos.y,
     };
     this.transitions.update(ts => [...ts, t]);
@@ -295,6 +298,12 @@ export class PetriService {
     this.transitions.update(ts => ts.map(t => (t.id === id ? { ...t, label } : t)));
   }
 
+  /** Définit la signification (description) d'une place ou d'une transition. */
+  setNodeDescription(id: string, description: string) {
+    this.places.update(ps => ps.map(p => (p.id === id ? { ...p, description } : p)));
+    this.transitions.update(ts => ts.map(t => (t.id === id ? { ...t, description } : t)));
+  }
+
   /** Définit le marquage initial M0 d'une place (formulaire / clic) et
    *  synchronise le marquage courant sur cette valeur. */
   setInitialMarking(placeId: string, value: number) {
@@ -333,8 +342,8 @@ export class PetriService {
 
   loadNet(net: PetriNet) {
     this.stop();
-    this.places.set(net.places.map(p => ({ ...p })));
-    this.transitions.set(net.transitions.map(t => ({ ...t })));
+    this.places.set(net.places.map(p => ({ ...p, description: p.description ?? '' })));
+    this.transitions.set(net.transitions.map(t => ({ ...t, description: t.description ?? '' })));
     this.arcs.set(net.arcs.map(a => ({ ...a })));
     const map: Record<string, number> = {};
     for (const p of net.places) map[p.id] = p.marking;

@@ -60,7 +60,7 @@
       <div class="pctrl-marking-grid">
         @for (p of places(); track p.id; let i = $index) {
           <div class="pctrl-marking-item">
-            <span class="pctrl-plabel">{{ p.label }}</span>
+            <span class="pctrl-plabel" [title]="p.description || p.label">{{ p.label }}</span>
             <input type="number" min="0" [value]="p.marking"
                    (change)="onMarkingInput(p.id, $any($event.target).value)">
             <button class="pctrl-plus" title="Injecter un jeton (+1)" (click)="petri.injectToken(p.id, 1)">+</button>
