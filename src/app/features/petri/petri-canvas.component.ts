@@ -466,13 +466,19 @@ export class PetriCanvasComponent implements OnDestroy {
   onKeyDown(e: KeyboardEvent) {
     const tag = (e.target as HTMLElement)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    // Sur le canevas, Backspace ne doit jamais déclencher la navigation arrière
+    // du navigateur — même quand rien n'est sélectionné.
+    if (e.key === 'Backspace') e.preventDefault();
     if (e.key === 'Escape') { this.arcSource = null; this.ghostEnd.set(null); this.selected.set(null); }
     if ((e.key === 'r' || e.key === 'R') && this.selected() && this.petri.isTransition(this.selected()!)) {
       this.petri.toggleTransitionOrientation(this.selected()!);
       e.preventDefault();
     }
-    if (e.key === 'Delete' && this.selected()) {
-      const id = this.selected()!;
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      // Backspace supprime l'élément sélectionné (comme Delete) ; sinon, ne rien
+      // faire — la navigation arrière est déjà neutralisée plus haut.
+      const id = this.selected();
+      if (!id) return;
       if (this.petri.arcs().some(a => a.id === id)) this.petri.removeArc(id);
       else if (this.petri.notes().some(n => n.id === id)) this.petri.removeNote(id);
       else this.petri.removeNode(id);
