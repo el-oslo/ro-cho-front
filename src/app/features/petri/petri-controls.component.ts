@@ -116,5 +116,6 @@ export class PetriControlsComponent {
   /** Remet la séquence au début (sans effacer la saisie). */
   resetSequence() {
     this.petri.resetSequence();
+    this.petri.reset();
   }
 }
