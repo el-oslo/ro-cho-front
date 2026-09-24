@@ -64,3 +64,37 @@ Construire un éditeur/simulateur de RdP qui :
 3. Intégration du composant matriciel existant pour l'affichage Pré/Post/W/marquage.
 4. Contrôles UI : démarrer/arrêter, vitesse du tick, reset, formulaire de marquage initial, injection manuelle de jetons.
 5. Gestion visible des cas limites : blocage (deadlock), conflit entre transitions franchissables.
+
+
+Une machine de fabrication de vis produit
+des vis une à une, et les dépose 4 par 4, par
+le haut dans un magasin vertical. Le
+magasin a une capacité de 6 vis.
+Deux robots de montage R1 et R2 accèdent
+au magasin par le bas pour y prendre les
+vis, et les monter sur des platines
+électromécaniques.
+Le robot R1 retire les vis du magasin par
+groupe de deux et les visse une par une. Le
+robot R2 retire les vis une par une et les
+visse une par une.
+
+Les robots accèdent au magasin à tour de rôle, et n’ont
+pas de conflit d’accès avec la machine de production :
+elle peut accéder par le haut pendant qu’un robot
+accède par le bas.
+
+Quatre philosophes sont autour d’une table,
+disposant quatre baguettes disposées entre
+eux. Un philosophe peut avoir deux états : il
+pense ou il mange. Pour manger il a besoin des
+deux baguettes qui sont à chacun de ces cotés.
+Initialement, tous les philosophes pensent et
+les baguettes sont posées sur la table.
+Lorsqu’un philosophe désire manger il prend
+les baguettes à sa droite et à sa gauche et se
+met à manger. Quand il a fini il repose les
+baguettes de droite et de gauche
+1-. Donner le modèle du RdP coloré de ce système.
+2-. Comment serait modifié ce RdP si les philosophes disposaient de quatre
+baguettes placées au centre de la table et utilisable par tous.

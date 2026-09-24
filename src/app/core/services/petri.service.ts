@@ -1,7 +1,8 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
-  Arc, ArcKind, ConflictPolicy, PetriNet, Place, Point, TextNote, Transition, emptyPetriNet,
+  Arc, ArcKind, BlockingPlace, ConflictPolicy, PetriNet, Place, Point,
+  SequenceError, TextNote, Transition,
 } from '../models/petri.models';
 import { PETRI_PRESETS } from './petri.presets';
 
@@ -45,6 +46,20 @@ export class PetriService {
   readonly lastInjected = signal<{ id: string; ts: number } | null>(null);
 
   private timer: ReturnType<typeof setTimeout> | null = null;
+
+  // ── État du mode séquence manuelle ──────────────────────────────────────────
+  /** Texte brut saisi par l'utilisateur (ex : « T1, T2, T1, T3 »). */
+  readonly sequenceInput = signal('');
+  /** Labels parsés de la séquence (après validation). */
+  readonly sequenceSteps = signal<string[]>([]);
+  /** Index de l'étape courante (0 = avant le début, N = fini). */
+  readonly sequenceCursor = signal(0);
+  /** Mode séquence actif (joue automatiquement pas à pas). */
+  readonly sequenceRunning = signal(false);
+  /** Dernière erreur de séquence (null si aucune). */
+  readonly sequenceError = signal<SequenceError | null>(null);
+
+  private sequenceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private snackBar: MatSnackBar) {}
 
@@ -413,6 +428,7 @@ export class PetriService {
     this.deadlock.set(false);
     this.lastFired.set(null);
     this.lastInjected.set(null);
+    this.resetSequence();
   }
 
   /** Efface entièrement le réseau. */
@@ -461,6 +477,142 @@ export class PetriService {
       this.loadNet(preset.net);
       this.snackBar.open(`Réseau chargé : ${preset.name}`, 'OK', { duration: 2500 });
     }
+  }
+
+  // ── Séquence manuelle de transitions ────────────────────────────────────────
+
+  /**
+   * Parse et valide le texte de saisie.
+   * Accepte : virgules, points-virgules ou espaces comme séparateurs.
+   * Met à jour sequenceSteps, remet le curseur à 0 et efface l'erreur.
+   * Retourne false si la séquence est vide après parsing.
+   */
+  parseSequence(input: string): boolean {
+    this.sequenceInput.set(input);
+    const steps = input
+      .split(/[\s,;]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    this.sequenceCursor.set(0);
+    this.sequenceError.set(null);
+    this.sequenceSteps.set(steps);
+
+    if (steps.length === 0) {
+      this.sequenceError.set({ kind: 'sequence_vide' });
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Avance d'un pas dans la séquence.
+   * • Résout le label → id de transition.
+   * • Vérifie la franchissabilité.
+   * • Applique le franchissement si valide.
+   * Retourne true si le pas a réussi, false en cas d'erreur ou de fin.
+   */
+  stepSequence(): boolean {
+    const steps = this.sequenceSteps();
+    const cursor = this.sequenceCursor();
+
+    if (steps.length === 0) {
+      this.sequenceError.set({ kind: 'sequence_vide' });
+      return false;
+    }
+
+    if (cursor >= steps.length) {
+      // Séquence terminée normalement
+      return false;
+    }
+
+    const label = steps[cursor];
+    const transition = this.transitions().find(t => t.label === label);
+
+    // 1. Vérifier que la transition existe dans le réseau
+    if (!transition) {
+      this.sequenceError.set({ kind: 'transition_inconnue', transitionLabel: label });
+      this.stopSequence();
+      return false;
+    }
+
+    // 2. Vérifier la franchissabilité et collecter les places bloquantes
+    if (!this.canFire(transition.id)) {
+      const blocking: BlockingPlace[] = this.arcs()
+        .filter(a => a.kind === 'PreArc' && a.targetId === transition.id)
+        .filter(a => (this.markingMap()[a.sourceId] ?? 0) < a.weight)
+        .map(a => {
+          const place = this.places().find(p => p.id === a.sourceId);
+          return {
+            placeLabel: place?.label ?? a.sourceId,
+            available: this.markingMap()[a.sourceId] ?? 0,
+            required: a.weight,
+          };
+        });
+
+      this.sequenceError.set({
+        kind: 'transition_infranchissable',
+        transitionLabel: label,
+        blockingPlaces: blocking,
+      });
+      this.stopSequence();
+      return false;
+    }
+
+    // 3. Tout est bon — franchir la transition
+    this.sequenceError.set(null);
+    this.applyFiring(transition.id);
+    this.lastFired.set({ ids: [transition.id], ts: Date.now() });
+    this.deadlock.set(false);
+    this.sequenceCursor.update(c => c + 1);
+    return true;
+  }
+
+  /** Lance l'exécution automatique de la séquence (un pas par tick). */
+  runSequence() {
+    if (this.sequenceRunning()) return;
+    if (this.sequenceSteps().length === 0) {
+      this.sequenceError.set({ kind: 'sequence_vide' });
+      return;
+    }
+    // Arrêter la simulation automatique si elle tourne
+    if (this.isRunning()) this.stop();
+
+    this.sequenceRunning.set(true);
+    this.scheduleSequenceStep();
+  }
+
+  /** Arrête l'exécution automatique de la séquence. */
+  stopSequence() {
+    this.sequenceRunning.set(false);
+    if (this.sequenceTimer) { clearTimeout(this.sequenceTimer); this.sequenceTimer = null; }
+  }
+
+  /** Remet la séquence au début sans effacer le texte saisi. */
+  resetSequence() {
+    this.stopSequence();
+    this.sequenceCursor.set(0);
+    this.sequenceError.set(null);
+  }
+
+  private scheduleSequenceStep() {
+    this.sequenceTimer = setTimeout(() => {
+      if (!this.sequenceRunning()) return;
+      const cursor = this.sequenceCursor();
+      const steps = this.sequenceSteps();
+
+      if (cursor >= steps.length) {
+        // Séquence terminée
+        this.stopSequence();
+        return;
+      }
+
+      const ok = this.stepSequence();
+      if (ok) {
+        this.scheduleSequenceStep();
+      }
+      // Si !ok, stepSequence a déjà appelé stopSequence et posé l'erreur
+    }, this.tickInterval());
   }
 
   // ── Import / Export JSON ─────────────────────────────────────────────────────

@@ -64,3 +64,30 @@ export function emptyPetriNet(): PetriNet {
 /** Politique de résolution de conflit lorsque plusieurs transitions sont
  *  franchissables sur le même tick. Choix documenté et sélectionnable dans l'UI. */
 export type ConflictPolicy = 'random' | 'priority' | 'parallel';
+
+// ── Séquence manuelle de transitions ─────────────────────────────────────────
+
+/** Catégorie de l'erreur rencontrée lors de l'exécution d'une séquence manuelle. */
+export type SequenceErrorKind =
+  | 'transition_inconnue'        // le label ne correspond à aucune transition du réseau
+  | 'transition_infranchissable' // marquage insuffisant pour franchir la transition
+  | 'sequence_vide';             // la séquence parsée ne contient aucun label
+
+/** Détail d'une place bloquante lors d'un échec de franchissement. */
+export interface BlockingPlace {
+  placeLabel: string;
+  available: number;
+  required: number;
+}
+
+/** Erreur produite lors de l'exécution pas-à-pas d'une séquence manuelle. */
+export interface SequenceError {
+  kind: SequenceErrorKind;
+  /** Label de la transition concernée (non applicable pour sequence_vide). */
+  transitionLabel?: string;
+  /** Détail des places bloquantes (uniquement pour transition_infranchissable). */
+  blockingPlaces?: BlockingPlace[];
+}
+
+/** État d'une étape dans la liste de progression visuelle. */
+export type SequenceStepState = 'done' | 'active' | 'error' | 'pending';

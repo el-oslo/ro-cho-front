@@ -175,3 +175,160 @@
     white-space: nowrap;
   }
 }
+
+// ── Séquence manuelle ────────────────────────────────────────────────────────
+
+.seq-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: var(--mat-sys-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.seq-play {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  border-color: transparent;
+  font-weight: 600;
+
+  &.running {
+    background: #c1533f;
+    color: #fff;
+    border-color: transparent;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ── Progression des étapes ───────────────────────────────────────────────────
+
+.seq-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.seq-progress-label {
+  font-size: 0.74rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-weight: 600;
+}
+
+.seq-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.seq-step {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s;
+
+  &--done {
+    background: #38b26a22;
+    color: #2e8b57;
+    border-color: #38b26a44;
+  }
+
+  &--active {
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
+  }
+
+  &--error {
+    background: #c1533f22;
+    color: #c1533f;
+    border-color: #c1533f66;
+    animation: seq-shake 0.3s ease;
+  }
+
+  &--pending {
+    background: var(--mat-sys-surface-variant);
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.6;
+  }
+}
+
+@keyframes seq-shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-3px); }
+  75%       { transform: translateX(3px); }
+}
+
+// ── Bloc d'erreur ────────────────────────────────────────────────────────────
+
+.seq-error {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #c1533f14;
+  border: 1px solid #c1533f44;
+  animation: seq-fadein 0.2s ease;
+}
+
+.seq-error-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #c1533f;
+}
+
+.seq-error-msg {
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface);
+  line-height: 1.5;
+}
+
+.seq-error-places {
+  margin: 4px 0 0 0;
+  padding-left: 16px;
+  font-size: 0.77rem;
+  color: var(--mat-sys-on-surface);
+  line-height: 1.8;
+}
+
+// ── Badge succès ─────────────────────────────────────────────────────────────
+
+.seq-success {
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #38b26a18;
+  border: 1px solid #38b26a44;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2e8b57;
+  animation: seq-fadein 0.2s ease;
+}
+
+@keyframes seq-fadein {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

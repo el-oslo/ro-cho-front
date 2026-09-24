@@ -91,4 +91,114 @@
     <input #fileInput type="file" accept=".json" hidden (change)="onFileSelected($event)">
   </section>
 
+  <!-- Séquence manuelle de transitions -->
+  <section class="pctrl-section">
+    <div class="pctrl-title">Séquence manuelle</div>
+
+    <!-- Zone de saisie -->
+    <label class="pctrl-field">
+      <span>Transitions (séparées par virgule, espace ou ;)</span>
+      <textarea class="seq-input"
+                rows="2"
+                placeholder="ex: T1, T2, T1, T3"
+                [(ngModel)]="sequenceInputValue"
+                [disabled]="petri.sequenceRunning()">
+      </textarea>
+    </label>
+
+    <!-- Boutons d'action -->
+    <div class="pctrl-row">
+      <button class="pctrl-btn"
+              (click)="validateSequence()"
+              [disabled]="petri.sequenceRunning()"
+              title="Valider et remettre le curseur au début">
+        Valider ✓
+      </button>
+      <button class="pctrl-btn"
+              (click)="stepSequence()"
+              [disabled]="petri.sequenceRunning() || sequenceFinished()"
+              title="Avancer d'un pas">
+        Pas ▷
+      </button>
+    </div>
+    <div class="pctrl-row">
+      <button class="pctrl-btn seq-play"
+              [class.running]="petri.sequenceRunning()"
+              (click)="toggleSequenceRun()"
+              [disabled]="sequenceFinished() && !petri.sequenceRunning()"
+              title="Jouer ou arrêter la séquence automatiquement">
+        @if (petri.sequenceRunning()) {
+          ⏸ Pause
+        } @else {
+          ▶ Jouer
+        }
+      </button>
+      <button class="pctrl-btn"
+              (click)="resetSequence()"
+              title="Remettre la séquence au début">
+        ↺ Reset
+      </button>
+    </div>
+
+    <!-- Progression -->
+    @if (sequenceStepStates().length > 0) {
+      <div class="seq-progress">
+        <span class="seq-progress-label">
+          Étape {{ petri.sequenceCursor() }} / {{ petri.sequenceSteps().length }}
+        </span>
+        <div class="seq-steps">
+          @for (step of sequenceStepStates(); track $index) {
+            <span class="seq-step" [class]="'seq-step--' + step.state" [title]="step.state">
+              {{ step.label }}
+            </span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Succès -->
+    @if (sequenceFinished()) {
+      <div class="seq-success">
+        ✓ Séquence exécutée avec succès ({{ petri.sequenceSteps().length }} transitions)
+      </div>
+    }
+
+    <!-- Bloc d'erreur -->
+    @if (petri.sequenceError(); as err) {
+      <div class="seq-error">
+        @switch (err.kind) {
+          @case ('sequence_vide') {
+            <span class="seq-error-title">⚠ Séquence vide</span>
+            <span class="seq-error-msg">Entrez au moins une transition (ex&nbsp;: T1, T2).</span>
+          }
+          @case ('transition_inconnue') {
+            <span class="seq-error-title">⚠ Transition inconnue</span>
+            <span class="seq-error-msg">
+              « {{ err.transitionLabel }} » n'existe pas dans ce réseau.<br>
+              Transitions disponibles&nbsp;:
+              <b>{{ petri.transitionLabels().join(', ') || '(aucune)' }}</b>
+            </span>
+          }
+          @case ('transition_infranchissable') {
+            <span class="seq-error-title">⚠ Transition infranchissable</span>
+            <span class="seq-error-msg">
+              <b>{{ err.transitionLabel }}</b> ne peut pas être franchie&nbsp;:
+            </span>
+            @if (err.blockingPlaces && err.blockingPlaces.length > 0) {
+              <ul class="seq-error-places">
+                @for (bp of err.blockingPlaces; track bp.placeLabel) {
+                  <li>
+                    <b>{{ bp.placeLabel }}</b> — {{ bp.available }} jeton(s) disponible(s),
+                    {{ bp.required }} requis
+                  </li>
+                }
+              </ul>
+            }
+          }
+        }
+      </div>
+    }
+
+  </section>
+
 </div>
