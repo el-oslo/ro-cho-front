@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   border-radius: 10px;
-  background: var(--mat-sys-surface-container, rgba(255, 255, 255, 0.95));
-  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--surface-2, rgba(255, 255, 255, 0.95));
+  border: 1px solid var(--border);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
   overflow: hidden;
   backdrop-filter: blur(2px);
@@ -19,7 +19,7 @@
   padding: 8px 10px;
   border: none;
   background: transparent;
-  color: var(--mat-sys-on-surface);
+  color: var(--ink-900);
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 700;
@@ -32,7 +32,7 @@
     font-size: 0.68rem;
     font-weight: 500;
     text-transform: none;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ink-500);
   }
 }
 
@@ -50,13 +50,13 @@
   gap: 6px;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
   margin-bottom: 6px;
 }
 
 .plg-empty {
   font-size: 0.72rem;
-  color: var(--mat-sys-outline);
+  color: var(--border-strong);
   padding: 2px 0;
 }
 
@@ -85,11 +85,11 @@
   gap: 4px;
   padding: 3px 0;
 
-  & + .plg-item { border-top: 1px solid var(--mat-sys-outline-variant); }
+  & + .plg-item { border-top: 1px solid var(--border); }
 }
 
 .plg-colon {
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
   font-weight: 700;
 }
 
@@ -100,14 +100,14 @@
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--mat-sys-on-surface);
+  color: var(--ink-900);
   font: inherit;
   outline: none;
 
-  &:hover { background: var(--mat-sys-surface-variant); }
+  &:hover { background: var(--paper); }
   &:focus {
-    background: var(--mat-sys-surface);
-    border-color: var(--mat-sys-primary);
+    background: var(--surface);
+    border-color: var(--accent-base);
   }
 }
 
@@ -124,7 +124,7 @@
   font-size: 0.78rem;
 
   &::placeholder {
-    color: var(--mat-sys-outline);
+    color: var(--border-strong);
     font-style: italic;
   }
 }
@@ -134,14 +134,14 @@
   width: 44px;
   padding: 3px 4px;
   border-radius: 6px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-900);
   font: inherit;
   font-size: 0.76rem;
   text-align: center;
   outline: none;
-  &:focus { border-color: var(--mat-sys-primary); }
+  &:focus { border-color: var(--accent-base); }
 }
 
 .plg-cur {
@@ -150,7 +150,7 @@
   text-align: center;
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--mat-sys-primary);
+  color: var(--accent-base);
 }
 
 .plg-del {
@@ -160,7 +160,7 @@
   border: none;
   border-radius: 5px;
   background: transparent;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;

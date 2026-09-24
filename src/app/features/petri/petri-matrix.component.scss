@@ -14,7 +14,7 @@
 }
 
 .pm-empty {
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
   font-size: 0.85rem;
   padding: 24px;
   text-align: center;
@@ -29,22 +29,22 @@
   .pm-toolbar-label {
     font-size: 0.78rem;
     font-weight: 600;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ink-500);
   }
 
   .pm-add {
     padding: 5px 12px;
     border-radius: 8px;
-    border: 1px solid var(--mat-sys-outline-variant);
-    background: var(--mat-sys-surface-container, transparent);
-    color: var(--mat-sys-on-surface);
+    border: 1px solid var(--border);
+    background: var(--surface-2, transparent);
+    color: var(--ink-900);
     cursor: pointer;
     font-size: 0.8rem;
     font-weight: 600;
 
     &:hover {
-      background: var(--mat-sys-primary);
-      color: var(--mat-sys-on-primary);
+      background: var(--accent-base);
+      color: #fff;
       border-color: transparent;
     }
   }
@@ -59,7 +59,7 @@
     border: 1px solid transparent;
     border-radius: 5px;
     background: transparent;
-    color: var(--mat-sys-on-surface);
+    color: var(--ink-900);
     font: inherit;
     font-size: 0.82rem;
     text-align: center;
@@ -69,9 +69,9 @@
     &::-webkit-inner-spin-button,
     &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-    &:hover { background: var(--mat-sys-surface-variant); }
-    &:focus { border-color: var(--mat-sys-primary); background: var(--mat-sys-surface); }
-    &::placeholder { color: var(--mat-sys-outline); }
+    &:hover { background: var(--paper); }
+    &:focus { border-color: var(--accent-base); background: var(--surface); }
+    &::placeholder { color: var(--border-strong); }
   }
 }
 
@@ -90,8 +90,8 @@
     text-align: center;
     outline: none;
 
-    &:hover { background: var(--mat-sys-surface); }
-    &:focus { border-color: var(--mat-sys-primary); background: var(--mat-sys-surface); }
+    &:hover { background: var(--surface); }
+    &:focus { border-color: var(--accent-base); background: var(--surface); }
   }
 
   .pm-del {
@@ -101,7 +101,7 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ink-500);
     cursor: pointer;
     font-size: 0.95rem;
     line-height: 1;
@@ -115,7 +115,7 @@
     margin: 0 0 8px;
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ink-500);
     letter-spacing: 0.02em;
   }
 }
@@ -127,23 +127,23 @@
   th,
   td {
     padding: 4px 8px;
-    border: 1px solid var(--mat-sys-outline-variant);
+    border: 1px solid var(--border);
     text-align: center;
     min-width: 42px;
   }
 
   thead th {
-    background: var(--mat-sys-surface-variant);
+    background: var(--paper);
     font-weight: 600;
   }
 
   .pm-corner {
-    background: var(--mat-sys-surface-variant);
+    background: var(--paper);
     font-weight: 600;
   }
 
   .pm-rowhead {
-    background: var(--mat-sys-surface-variant);
+    background: var(--paper);
     font-weight: 600;
     text-align: right;
     white-space: nowrap;
@@ -155,12 +155,12 @@
 }
 
 .pm-zero {
-  color: var(--mat-sys-outline);
+  color: var(--border-strong);
 }
 
 .pm-marking {
   font-weight: 700;
-  color: var(--mat-sys-primary);
+  color: var(--accent-base);
 }
 
 .pm-pos {

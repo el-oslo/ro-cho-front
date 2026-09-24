@@ -27,8 +27,8 @@
   gap: 4px;
   padding: 4px;
   border-radius: 10px;
-  background: var(--mat-sys-surface-container, rgba(255, 255, 255, 0.9));
-  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--surface-2, rgba(255, 255, 255, 0.9));
+  border: 1px solid var(--border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 
   button {
@@ -40,15 +40,15 @@
     border: none;
     border-radius: 7px;
     background: transparent;
-    color: var(--mat-sys-on-surface);
+    color: var(--ink-900);
     cursor: pointer;
     font-size: 15px;
     line-height: 1;
 
-    &:hover { background: var(--mat-sys-surface-variant); }
+    &:hover { background: var(--paper); }
     &.on {
-      background: var(--mat-sys-primary);
-      color: var(--mat-sys-on-primary);
+      background: var(--accent-base);
+      color: #fff;
     }
   }
 }
@@ -74,9 +74,9 @@
   padding: 5px 12px;
   border-radius: 999px;
   font-size: 0.76rem;
-  color: var(--mat-sys-on-surface-variant);
-  background: var(--mat-sys-surface-container, rgba(255, 255, 255, 0.85));
-  border: 1px solid var(--mat-sys-outline-variant);
+  color: var(--ink-500);
+  background: var(--surface-2, rgba(255, 255, 255, 0.85));
+  border: 1px solid var(--border);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -90,13 +90,13 @@
   gap: 6px;
   padding: 10px;
   border-radius: 10px;
-  background: var(--mat-sys-surface-container-high, #fff);
-  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 
   label {
     font-size: 0.72rem;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ink-500);
   }
 
   input,
@@ -104,12 +104,12 @@
     width: 90px;
     padding: 5px 7px;
     border-radius: 6px;
-    border: 1px solid var(--mat-sys-outline);
-    background: var(--mat-sys-surface);
-    color: var(--mat-sys-on-surface);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--ink-900);
     font: inherit;
     outline: none;
-    &:focus { border-color: var(--mat-sys-primary); }
+    &:focus { border-color: var(--accent-base); }
   }
 
   textarea {
@@ -129,12 +129,12 @@
       border: none;
       cursor: pointer;
       font-size: 0.78rem;
-      background: var(--mat-sys-surface-variant);
-      color: var(--mat-sys-on-surface);
+      background: var(--paper);
+      color: var(--ink-900);
 
       &:first-child {
-        background: var(--mat-sys-primary);
-        color: var(--mat-sys-on-primary);
+        background: var(--accent-base);
+        color: #fff;
       }
     }
   }

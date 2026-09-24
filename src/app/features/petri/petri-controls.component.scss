@@ -26,7 +26,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
 }
 
 .pctrl-run {
@@ -40,8 +40,8 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
+  background: var(--accent-base);
+  color: #fff;
 
   &.running {
     background: #c1533f;
@@ -58,13 +58,13 @@
   flex: 1;
   padding: 7px 8px;
   border-radius: 8px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface-container, transparent);
-  color: var(--mat-sys-on-surface);
+  border: 1px solid var(--border);
+  background: var(--surface-2, transparent);
+  color: var(--ink-900);
   cursor: pointer;
   font-size: 0.8rem;
 
-  &:hover { background: var(--mat-sys-surface-variant); }
+  &:hover { background: var(--paper); }
 
   &.danger-outline {
     color: #c1533f;
@@ -77,16 +77,16 @@
   flex-direction: column;
   gap: 5px;
   font-size: 0.78rem;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
 
   input[type='range'] { width: 100%; }
 
   select {
     padding: 6px 8px;
     border-radius: 7px;
-    border: 1px solid var(--mat-sys-outline-variant);
-    background: var(--mat-sys-surface);
-    color: var(--mat-sys-on-surface);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-900);
     font: inherit;
   }
 }
@@ -102,8 +102,8 @@
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 600;
-  background: var(--mat-sys-surface-variant);
-  color: var(--mat-sys-on-surface-variant);
+  background: var(--paper);
+  color: var(--ink-500);
 
   &.on {
     background: #38b26a22;
@@ -121,7 +121,7 @@
 
 .pctrl-muted {
   font-size: 0.78rem;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
 }
 
 .pctrl-marking-grid {
@@ -148,9 +148,9 @@
     width: 100%;
     padding: 4px 6px;
     border-radius: 6px;
-    border: 1px solid var(--mat-sys-outline-variant);
-    background: var(--mat-sys-surface);
-    color: var(--mat-sys-on-surface);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-900);
     font: inherit;
     text-align: center;
   }
@@ -170,7 +170,7 @@
 
   .pctrl-current {
     font-size: 0.76rem;
-    color: var(--mat-sys-primary);
+    color: var(--accent-base);
     font-weight: 600;
     white-space: nowrap;
   }
@@ -183,9 +183,9 @@
   box-sizing: border-box;
   padding: 7px 9px;
   border-radius: 7px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-900);
   font: inherit;
   font-size: 0.85rem;
   resize: vertical;
@@ -194,7 +194,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--mat-sys-primary);
+    border-color: var(--accent-base);
   }
 
   &:disabled {
@@ -204,8 +204,8 @@
 }
 
 .seq-play {
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
+  background: var(--accent-base);
+  color: #fff;
   border-color: transparent;
   font-weight: 600;
 
@@ -231,7 +231,7 @@
 
 .seq-progress-label {
   font-size: 0.74rem;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
   font-weight: 600;
 }
 
@@ -257,9 +257,9 @@
   }
 
   &--active {
-    background: var(--mat-sys-primary);
-    color: var(--mat-sys-on-primary);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
+    background: var(--accent-base);
+    color: #fff;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-base) 30%, transparent);
   }
 
   &--error {
@@ -270,8 +270,8 @@
   }
 
   &--pending {
-    background: var(--mat-sys-surface-variant);
-    color: var(--mat-sys-on-surface-variant);
+    background: var(--paper);
+    color: var(--ink-500);
     opacity: 0.6;
   }
 }
@@ -303,7 +303,7 @@
 
 .seq-error-msg {
   font-size: 0.78rem;
-  color: var(--mat-sys-on-surface);
+  color: var(--ink-900);
   line-height: 1.5;
 }
 
@@ -311,7 +311,7 @@
   margin: 4px 0 0 0;
   padding-left: 16px;
   font-size: 0.77rem;
-  color: var(--mat-sys-on-surface);
+  color: var(--ink-900);
   line-height: 1.8;
 }
 

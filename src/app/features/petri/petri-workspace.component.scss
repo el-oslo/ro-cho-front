@@ -12,8 +12,8 @@
 
 .pw-rail {
   position: relative;
-  background: var(--mat-sys-surface-container-low, var(--mat-sys-surface));
-  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -27,10 +27,10 @@
   top: 8px;
   width: 20px;
   height: 28px;
-  border: 1px solid var(--mat-sys-outline-variant);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--mat-sys-surface-container, var(--mat-sys-surface));
-  color: var(--mat-sys-on-surface-variant);
+  background: var(--surface-2);
+  color: var(--ink-500);
   cursor: pointer;
   z-index: 3;
   line-height: 1;
@@ -53,21 +53,21 @@
   align-items: center;
   gap: 4px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  border-bottom: 1px solid var(--border);
 
   button {
     padding: 6px 14px;
     border: none;
     border-radius: 8px;
     background: transparent;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ink-500);
     cursor: pointer;
     font-size: 0.84rem;
     font-weight: 600;
 
     &.on {
-      background: var(--mat-sys-secondary-container, var(--mat-sys-surface-variant));
-      color: var(--mat-sys-on-secondary-container, var(--mat-sys-on-surface));
+      background: var(--accent-tint);
+      color: var(--ink-900);
     }
   }
 }
@@ -115,7 +115,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
   margin-bottom: 8px;
 
   .pw-log-counts {
@@ -128,7 +128,7 @@
 
 .pw-log-empty {
   font-size: 0.78rem;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ink-500);
 }
 
 .pw-log-list {
@@ -158,6 +158,6 @@
   .pw-log-time {
     font-variant-numeric: tabular-nums;
     font-size: 0.66rem;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ink-500);
   }
 }
